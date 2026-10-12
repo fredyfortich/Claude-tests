@@ -11,7 +11,8 @@ Primitive kinds (every primitive also carries "layer" and "name"):
   lines     segs=[[[x,y,z],[x,y,z]]..]          centrelines (lattice members)
   polyline  pts=[[x,y,z]..], closed=bool
   extrude   pts=planar profile, closed=bool (default True), holes=[profiles], vec=[dx,dy,dz], cap=bool,
-            smooth=bool (closed profiles that came from a blob: adapters may fit a periodic curve)
+            smooth=bool (closed profile came from a blob: adapters may fit a periodic curve),
+            holes_smooth=[bool] (the same, per hole)
   pipe      pts=path polyline, r=[r_start, r_end]
 """
 import math
@@ -121,6 +122,11 @@ def circle_pts(c, r, seg=72):
     return [[c[0] + r * math.cos(2 * math.pi * i / seg), c[1] + r * math.sin(2 * math.pi * i / seg)] for i in range(seg)]
 
 
+def keepout_poly(k, tcfg, ctx):
+    """Plan footprint a tree crown must stay out of: the outline grown by the clearance, or shrunk by "inset"."""
+    return offset_closed(outline(k["outline"], ctx), k.get("inset", -tcfg.get("clearance", 400)))
+
+
 def make_ctx(spec):
     """Reference table for parametric outlines: shell centres and element outlines by id."""
     return {"shells": dict((s["id"], s["c"]) for s in spec["canopy"]["shells"]),
@@ -145,7 +151,7 @@ def _centre(o, ctx):
                 c = _centre(ref, ctx)
             else:
                 pts = outline(ref, ctx)
-                c = [sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts)]
+                c = [sum(p[0] for p in pts) / float(len(pts)), sum(p[1] for p in pts) / float(len(pts))]
     else:
         c = o["c"]
     off = o.get("offset", [0, 0])
@@ -336,7 +342,20 @@ def _blob(o, ctx):
         if len(loop) > 2:
             loops.append(loop)
     best = max(loops, key=lambda L: abs(_signed_area(L)))
-    return ensure_ccw(_simplify_closed(best, float(o.get("tol", 15))))
+    simple = ensure_ccw(_simplify_closed(best, float(o.get("tol", 15))))
+    return _densify_closed(simple, float(o.get("max_seg", 1000)))
+
+
+def _densify_closed(pts, max_seg):
+    """Split long segments so a periodic spline through the vertices stays on the polygon."""
+    out = []
+    n = len(pts)
+    for i in range(n):
+        a, b = pts[i], pts[(i + 1) % n]
+        k = max(1, int(math.ceil(math.hypot(b[0] - a[0], b[1] - a[1]) / max_seg)))
+        for j in range(k):
+            out.append([a[0] + (b[0] - a[0]) * j / float(k), a[1] + (b[1] - a[1]) * j / float(k)])
+    return out
 
 
 def _simplify_closed(pts, tol):
@@ -668,7 +687,7 @@ def build(spec):
     ctx = make_ctx(spec)
 
     def z_of(val):
-        return lv[val] if isinstance(val, str) else float(val)
+        return float(lv[val]) if isinstance(val, str) else float(val)
 
     def add(kind, layer, name, **kw):
         d = {"kind": kind, "layer": layer, "name": PREFIX + name}
@@ -699,8 +718,7 @@ def build(spec):
     tcfg = spec["trees"]
     keepout = []
     for k in tcfg.get("keepout", []):
-        off = k.get("inset", -tcfg.get("clearance", 400))
-        keepout.append((offset_closed(outline(k["outline"], ctx), off), z_of(k["top"]) + tcfg.get("clearance", 400)))
+        keepout.append((keepout_poly(k, tcfg, ctx), z_of(k["top"]) + tcfg.get("clearance", 400)))
     def clashes(br):
         for p in br:
             for poly, ztop in keepout:
@@ -750,12 +768,14 @@ def build(spec):
                 z0, z1 = z_of(e["z"][0]), z_of(e["z"][1])
             holes = [lift(outline(h, ctx), z0) for h in e.get("holes", [])]
             add("extrude", layer, name, pts=lift(outline(e["outline"], ctx), z0), holes=holes,
-                vec=[0, 0, z1 - z0], cap=True, smooth=is_smooth(e["outline"], ctx))
+                vec=[0, 0, z1 - z0], cap=True, smooth=is_smooth(e["outline"], ctx),
+                holes_smooth=[is_smooth(h, ctx) for h in e.get("holes", [])])
         elif k == "ring":
             z0, z1 = z_of(e["z"][0]), z_of(e["z"][1])
             out = outline(e["outline"], ctx)
+            smooth = is_smooth(e["outline"], ctx)
             add("extrude", layer, name, pts=lift(out, z0), holes=[lift(offset_closed(out, e["t"]), z0)],
-                vec=[0, 0, z1 - z0], cap=True, smooth=is_smooth(e["outline"], ctx))
+                vec=[0, 0, z1 - z0], cap=True, smooth=smooth, holes_smooth=[smooth])
         elif k == "glass":
             z0, z1 = z_of(e["z"][0]), z_of(e["z"][1])
             pts = outline(e["outline"], ctx)
@@ -826,7 +846,7 @@ def clearance_report(spec, step=500.0):
     ctx = make_ctx(spec)
     out = []
     for k in spec["trees"].get("keepout", []):
-        poly = outline(k["outline"], ctx)
+        poly = keepout_poly(k, spec["trees"], ctx)
         top = lv[k["top"]] if isinstance(k["top"], str) else float(k["top"])
         xs = [p[0] for p in poly]
         ys = [p[1] for p in poly]

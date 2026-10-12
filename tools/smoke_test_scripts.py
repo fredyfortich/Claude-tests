@@ -158,6 +158,21 @@ def main():
     print(report)
     doc, g, _ = run("grasshopper/mvm_pavilion_gh.py", {"apex": 12000, "branches": 5})
     print("grasshopper OK:", g["report"])
+    # regression: fewer centres than shells must keep the shells the slab/planter refer to by id
+    three = [Pt(-14000, 0, 0), Pt(0, 0, 0), Pt(7000, 2000, 0)]
+    doc, g, _ = run("grasshopper/mvm_pavilion_gh.py", {"centers": three})
+    print("grasshopper 3 centres OK:", g["report"].split(" | ")[0])
+    # densified blob edges: no segment longer than max_seg, so periodic splines cannot bow off straight edges
+    sys.path.insert(0, os.path.join(ROOT, "core"))
+    import json
+    import mvm_core
+    spec = json.load(open(os.path.join(ROOT, "spec", "pavilion_spec.json")))
+    ctx = mvm_core.make_ctx(spec)
+    slab = [e for e in spec["elements"] if e["id"] == "Slab_L01"][0]["outline"]
+    pts = mvm_core.outline(slab, ctx)
+    longest = max(((pts[i][0] - pts[i - 1][0]) ** 2 + (pts[i][1] - pts[i - 1][1]) ** 2) ** 0.5 for i in range(len(pts)))
+    assert longest <= slab.get("max_seg", 1000) + 1, longest
+    print("blob densify OK: longest slab segment %.0f mm over %d pts" % (longest, len(pts)))
 
 
 if __name__ == "__main__":

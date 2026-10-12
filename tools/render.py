@@ -12,7 +12,7 @@ from PIL import Image
 from camera import OUT, Camera, load_spec, mvm_core, view_image
 
 STYLE = {  # rgb, alpha
-    "Roof": ((248, 238, 218), 1.0), "skin": ((255, 244, 222), 0.22), "gutter": ((255, 255, 255), 1.0),
+    "Roof": ((236, 222, 196), 1.0), "skin": ((252, 240, 214), 0.62), "gutter": ((255, 255, 255), 1.0),
     "Structure": ((234, 226, 212), 1.0), "Facade::Glass": ((150, 190, 222), 0.35),
     "Circulation::Core": ((214, 196, 170), 1.0), "Circulation::Stairs": ((226, 214, 196), 1.0),
     "Interior elements": ((240, 222, 192), 1.0),
@@ -97,7 +97,7 @@ def triangles(prims):
         k, lay, name = p["kind"], p["layer"], p["name"]
         if lay == "Massing" or k in ("lines", "polyline"):
             continue
-        style = "skin" if name.endswith("_skin") else "gutter" if "gutter" in name else lay
+        style = "skin" if name.endswith("_skin") else "gutter" if ("gutter" in name or "eave_beam" in name) else lay
         if k in ("mesh", "pipe"):
             v, f = (p["v"], p["f"]) if k == "mesh" else mvm_core.pipe_mesh(p["pts"], p["r"][0], p["r"][1], 10)
             V = np.asarray(v, float)

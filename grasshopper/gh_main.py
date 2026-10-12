@@ -43,8 +43,23 @@ def _spec():
                 shells[n]["c"] = xy
             else:
                 shells.append({"id": "S%d" % (n + 1), "c": xy, "conf": 1.0})
-        del shells[len(centers):]
+        # fewer points drop trailing shells, except shells the slab, planters or keepouts refer to by id
+        used = _referenced_ids(spec)
+        shells[:] = [sh for n, sh in enumerate(shells) if n < len(centers) or sh["id"] in used]
     return spec
+
+
+def _referenced_ids(node, found=None):
+    found = set() if found is None else found
+    if isinstance(node, dict):
+        if "at" in node:
+            found.add(node["at"])
+        for v in node.values():
+            _referenced_ids(v, found)
+    elif isinstance(node, list):
+        for v in node:
+            _referenced_ids(v, found)
+    return found
 
 
 _spec_now = _spec()

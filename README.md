@@ -11,7 +11,7 @@ A concept model built from two AI images: a photo of the physical model (`spec/s
 - **Roof logic:** the roof is the upper envelope of the domes. Neighbouring domes therefore meet along valleys, which carry the white gutters seen in the image, and the plan becomes a Voronoi-like tiling. Moving a point re-tiles the whole roof.
 - **Shell profile:** a bell curve `z = eave + (apex − eave)·(1 − (r/R)^p)^k`. With `k > 1` the eave flares into a thin cantilevered lip, as in the source.
 - **Gridshell:** a triangulated polar net made only of planar triangles, so glass or ETFE infill needs no cold-bending. The members follow the cell boundary exactly, so the edge members are the gutters and eave beams.
-- **Six domes:** front S1, S3, S6; a smaller, lower S5 sits between S3 and S6, and its tree rises out of the round planter. At the back are S2 (the tallest) and S4, which is hidden from image 2, as in the photo. `dome_report` checks that every dome stands at least 1 m above its valleys.
+- **Six domes:** front S1, S3, S6; a smaller, lower S5 sits between S3 and S6, and its tree rises out of the round planter. At the back are S2 (the tallest) and S4, which is hidden from image 2, as in the photo. `dome_report` checks that every dome has at least an 86 m² plan cell and stands at least 1.2 m above its valleys.
 - **Upper floor (L01):** the slab edge is a smooth blend of shapes tied to the stone drum, S1 and S6. It wraps the drum, pushes forward under S1, runs straight just behind the S3 and S5 trunks, and steps back into a rounded east tip at S6. When those points move, the edge follows. The railing follows the slab. The upper floor is a rounded west pod and an east pod, with an open deck between them under the canopy, as in both images.
 - **Trees:** six branches per trunk. A branch that would clash with a pod roof or with the 2.4 m headroom over the open deck shortens its reach. Trees that stand in the building branch above it.
 - **Market and acceptance:** one repeatable shell module (one node family, prefab-friendly) gives an iconic, biophilic, shaded roof. The conventional enclosure below keeps cost and risk low. The canopy is PV/ETFE-ready, and the gap between canopy and roof ventilates by stack effect in a tropical climate.
@@ -20,10 +20,10 @@ A concept model built from two AI images: a photo of the physical model (`spec/s
 
 | Stage | Output | State |
 |---|---|---|
-| 1 Extraction | `spec/pavilion_spec.json` holds levels, grids, canopy, trees and the elements, with `conf` per item and `meta.flags`. `tools/fit_camera.py` fits one camera per image: image 1 to 12 anchors (rms 11.2 px), image 2 to 11 anchors (rms 14.1 px). | done |
+| 1 Extraction | `spec/pavilion_spec.json` holds levels, grids, canopy, trees and the elements, with `conf` per item and `meta.flags`. `tools/fit_camera.py` fits one camera per image: image 1 to 12 anchors (rms 11.6 px), image 2 to 11 anchors (rms 15.4 px). | done |
 | 2 Checkpoint | `out/stage2_overlay_img1.png` and `out/stage2_overlay_img2.png` show the projected spec, colour-coded by layer, with ≈ mm dimensions, level tags and anchor residuals. `out/plan_L01.png` shows the canopy cells over the L01 slab and the pods. | **awaiting your review** |
 | 3 Modelling | `rhino/mvm_build_rhino.py` builds the model in one call. `grasshopper/mvm_pavilion_gh.py` is the parametric component. `out/mvm_pavilion.3dm` was exported offline. | done |
-| 4 Verification | `out/stage4_compare_img1.png` and `out/stage4_compare_img2.png` each compare a source image with the render from its matched camera. `out/render_aerial.png` is an aerial view. | done, revision 2 |
+| 4 Verification | `out/stage4_compare_img1.png` and `out/stage4_compare_img2.png` each compare a source image with the render from its matched camera. `out/render_aerial.png` is an aerial view. | done, revision 2 (checked by independent verifiers) |
 
 ![Stage 4 compare, image 1](out/stage4_compare_img1.png)
 ![Stage 4 compare, image 2](out/stage4_compare_img2.png)
