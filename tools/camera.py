@@ -71,17 +71,18 @@ def resolve_anchor(spec, a):
     if "xyz" in a:
         return a["xyz"]
     kind, sid, what = a["ref"].split(":")
-    mod = spec["canopy"]["module"]
-    sh = [s for s in spec["canopy"]["shells"] if s["id"] == sid][0]
+    sh = [s for s in mvm_core.shell_params(spec["canopy"]) if s["id"] == sid][0]
     cx, cy = sh["c"]
-    R, eave, apex = sh.get("R", mod["R"]), sh.get("eave", mod["eave"]), sh.get("apex", mod["apex"])
+    R, apex = sh["R"], sh["apex"]
     if kind == "tree" and what == "base":
         lv = dict((l["name"], l["elev"]) for l in spec["levels"])
         b = spec["trees"]["base"]
         return [cx, cy, lv[b] if isinstance(b, str) else b]
     if kind == "shell":
-        return {"apex": [cx, cy, apex], "eave_left": [cx - R, cy, eave], "eave_right": [cx + R, cy, eave],
-                "eave_front": [cx, cy - R, eave]}[what]
+        if what == "apex":
+            return [cx, cy, apex]
+        x, y = {"eave_left": (cx - R, cy), "eave_right": (cx + R, cy), "eave_front": (cx, cy - R)}[what]
+        return [x, y, mvm_core.eave_at(sh, x, y)]
     raise ValueError(a["ref"])
 
 

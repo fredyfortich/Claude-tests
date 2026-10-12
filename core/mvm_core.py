@@ -500,6 +500,50 @@ def _strip(ring_a, ring_b):
 
 
 # ------------------------------------------------------------------ canopy --
+def shell_params(cfg):
+    """Resolved shell parameters: module values, per-shell overrides and the rim tilt.
+    Tilt: the rim lies on an inclined plane through the shell centre at the eave height; it is "rise"
+    higher at the rim on the side "u" points to and "rise" lower opposite. Modes: global (one plan
+    direction dir_deg), radial (away from "centre"), none. A shell's own "tilt" dict overrides it."""
+    mod = cfg["module"]
+    tilt = mod.get("tilt", {"mode": "none"})
+    out = []
+    for s in cfg["shells"]:
+        t = dict(tilt)
+        t.update(s.get("tilt", {}))
+        mode = t.get("mode", "global" if "dir_deg" in t else "none")
+        u, rise = [0.0, 0.0], float(t.get("rise", 0.0))
+        if mode == "global" or "dir_deg" in s.get("tilt", {}):
+            a = math.radians(t.get("dir_deg", 270.0))
+            u = [math.cos(a), math.sin(a)]
+        elif mode == "radial":
+            c0 = t.get("centre", [0.0, 0.0])
+            d = [s["c"][0] - c0[0], s["c"][1] - c0[1]]
+            n = math.hypot(d[0], d[1])
+            if n > 1e-6:
+                u = [d[0] / n, d[1] / n]
+            if t.get("blend_dir_deg") is not None:
+                a = math.radians(t["blend_dir_deg"])
+                w = float(t.get("blend", 0.5))
+                v = [(1 - w) * u[0] + w * math.cos(a), (1 - w) * u[1] + w * math.sin(a)]
+                n = math.hypot(v[0], v[1]) or 1.0
+                u = [v[0] / n, v[1] / n]
+        else:
+            rise = 0.0
+        out.append({
+            "id": s["id"], "c": s["c"],
+            "R": s.get("R", mod["R"]), "apex": s.get("apex", mod["apex"]),
+            "eave": s.get("eave", mod["eave"]), "p": s.get("p", mod["profile_p"]),
+            "k": s.get("k", mod.get("profile_k", 1.0)), "u": u, "rise": rise,
+        })
+    return out
+
+
+def eave_at(sh, x, y):
+    """Rim height of a shell above plan point (x, y): its inclined rim plane."""
+    return sh["eave"] + sh["rise"] * ((x - sh["c"][0]) * sh["u"][0] + (y - sh["c"][1]) * sh["u"][1]) / sh["R"]
+
+
 class Canopy(object):
     """Cluster of umbrella shells. The roof is the upper envelope of the domes,
     so shells meet along valleys (gutters) and the plan reads as a Voronoi-like tiling."""
@@ -508,14 +552,7 @@ class Canopy(object):
         mod = cfg["module"]
         self.cfg = cfg
         self.mod = mod
-        self.shells = []
-        for s in cfg["shells"]:
-            self.shells.append({
-                "id": s["id"], "c": s["c"],
-                "R": s.get("R", mod["R"]), "apex": s.get("apex", mod["apex"]),
-                "eave": s.get("eave", mod["eave"]), "p": s.get("p", mod["profile_p"]),
-                "k": s.get("k", mod.get("profile_k", 1.0)),
-            })
+        self.shells = shell_params(cfg)
         self.nb_samples = int(mod.get("boundary_samples", 144))
         self.bounds = [self._boundary(i) for i in range(len(self.shells))]
 
@@ -524,8 +561,10 @@ class Canopy(object):
         r = math.hypot(x - s["c"][0], y - s["c"][1])
         if r > s["R"]:
             return None
-        # bell profile: k = 1 gives a plain dome, k > 1 flares the eave (inflection, thin cantilevered lip)
-        return s["eave"] + (s["apex"] - s["eave"]) * (1.0 - (r / s["R"]) ** s["p"]) ** s["k"]
+        # bell profile: k = 1 gives a plain dome, k > 1 flares the eave (inflection, thin cantilevered lip);
+        # the eave term is the inclined rim plane, so the apex stays put while the rim tilts
+        e = eave_at(s, x, y)
+        return e + (s["apex"] - e) * (1.0 - (r / s["R"]) ** s["p"]) ** s["k"]
 
     def _rival(self, i, x, y):
         zi = self.dome(i, x, y)
@@ -574,7 +613,7 @@ class Canopy(object):
         x = s["c"][0] + r * math.cos(th)
         y = s["c"][1] + r * math.sin(th)
         z = self.dome(i, x, y)
-        return [x, y, z if z is not None else s["eave"]]
+        return [x, y, z if z is not None else eave_at(s, x, y)]
 
     def boundary_runs(self, i):
         """Split the cell boundary into runs: (-1, pts) eave arcs, (j, pts) valley shared with shell j."""

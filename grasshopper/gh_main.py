@@ -4,6 +4,7 @@
 #   spec_path  str      path to pavilion_spec.json (blank = spec embedded below)
 #   centers    Point3d  List access. Canopy shell centres; replaces S1.. in order, extra points add shells
 #   R, eave, apex, profile_k            canopy module (mm / exponent)
+#   tilt_rise, tilt_dir                 inclined rims: rise (mm) at the high side, plan direction (deg, 270 = lake)
 #   rings, member_len                    gridshell density
 #   branches, branch_z, reach            tree columns
 #   L01, L02                             level elevations (mm)
@@ -34,6 +35,15 @@ def _spec():
             lv["elev"] = globals()[lv["name"]]
     if _given("skin"):
         mod["skin"] = bool(skin)
+    if _given("tilt_rise") or _given("tilt_dir"):
+        t = dict(mod.get("tilt", {"mode": "global"}))
+        if _given("tilt_rise"):
+            t["rise"] = float(tilt_rise)
+        if _given("tilt_dir"):
+            t["dir_deg"] = float(tilt_dir)
+            if t.get("mode") not in ("global", "radial"):
+                t["mode"] = "global"
+        mod["tilt"] = t
     if _given("centers") and len(centers):
         k = unit_scale(Rhino.RhinoDoc.ActiveDoc)
         shells = spec["canopy"]["shells"]
