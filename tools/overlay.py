@@ -110,7 +110,7 @@ def main():
             if o and o["type"] == "circle":
                 c, txt = o["c"] + [0], "%s Ø≈%d c%.1f" % (e["id"], 2 * o["r"], e["conf"])
             elif o:
-                pts = np.asarray(mvm_core.outline(o))
+                pts = np.asarray(mvm_core.outline(o, mvm_core.make_ctx(spec)))
                 c = list(pts.mean(axis=0)) + [0]
                 ext = pts.max(axis=0) - pts.min(axis=0)
                 txt = "%s ≈%dx%d c%.1f" % (e["id"], round(ext[0], -2), round(ext[1], -2), e["conf"])

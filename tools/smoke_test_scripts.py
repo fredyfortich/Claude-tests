@@ -71,7 +71,7 @@ class Mesh(Geo):
 
 class Curve(Geo):
     @staticmethod
-    def CreateInterpolatedCurve(pts, degree):
+    def CreateInterpolatedCurve(pts, degree, knot_style=None):
         assert len(pts) >= 3
         return Curve()
 
@@ -114,7 +114,8 @@ def install():
     Layer = lambda: types.SimpleNamespace(Name="", Color=None, ParentLayerId=0, IsLocked=False, IsVisible=True)
     rg = types.SimpleNamespace(Point3d=Pt, Vector3d=Pt, Mesh=Mesh, LineCurve=Curve, PolylineCurve=Curve, Curve=Curve,
                                Brep=Brep, Surface=types.SimpleNamespace(CreateExtrusion=lambda c, v: Geo()),
-                               PipeCapMode=types.SimpleNamespace(Flat=1, Round=2))
+                               PipeCapMode=types.SimpleNamespace(Flat=1, Round=2),
+                               CurveKnotStyle=types.SimpleNamespace(ChordPeriodic=5))
     rhino = types.ModuleType("Rhino")
     rhino.Geometry = rg
     rhino.RhinoDoc = types.SimpleNamespace(ActiveDoc=doc)

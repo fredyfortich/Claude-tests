@@ -124,7 +124,7 @@ def context_triangles(spec):
     out = []
     for e in spec["elements"]:
         if e["id"] == "Pool_walls":
-            water = mvm_core.offset_closed(mvm_core.outline(e["outline"]), e["t"])
+            water = mvm_core.offset_closed(mvm_core.outline(e["outline"], mvm_core.make_ctx(spec)), e["t"])
             V = np.asarray(mvm_core.lift(water, -150), float)
             out += [(V[list(t)], "water") for t in ear_clip(V)]
     site = spec["meta"].get("context", {}).get("site_plate")

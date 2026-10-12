@@ -10,7 +10,8 @@ Primitive kinds (every primitive also carries "layer" and "name"):
   mesh      v=[[x,y,z]..], f=[[i,j,k] or [i,j,k,l]..]
   lines     segs=[[[x,y,z],[x,y,z]]..]          centrelines (lattice members)
   polyline  pts=[[x,y,z]..], closed=bool
-  extrude   pts=planar profile, closed=bool (default True), holes=[profiles], vec=[dx,dy,dz], cap=bool
+  extrude   pts=planar profile, closed=bool (default True), holes=[profiles], vec=[dx,dy,dz], cap=bool,
+            smooth=bool (closed profiles that came from a blob: adapters may fit a periodic curve)
   pipe      pts=path polyline, r=[r_start, r_end]
 """
 import math
@@ -120,11 +121,43 @@ def circle_pts(c, r, seg=72):
     return [[c[0] + r * math.cos(2 * math.pi * i / seg), c[1] + r * math.sin(2 * math.pi * i / seg)] for i in range(seg)]
 
 
-def outline(o):
-    """Outline dict -> closed CCW [[x, y], ..]. Types: rrect, circle, poly (vertices may carry a fillet radius)."""
+def make_ctx(spec):
+    """Reference table for parametric outlines: shell centres and element outlines by id."""
+    return {"shells": dict((s["id"], s["c"]) for s in spec["canopy"]["shells"]),
+            "elements": dict((e["id"], e["outline"]) for e in spec.get("elements", []) if "outline" in e)}
+
+
+def _ref_outline(key, ctx):
+    if not ctx or key not in ctx["elements"]:
+        raise ValueError("unresolved outline reference: " + str(key))
+    return ctx["elements"][key]
+
+
+def _centre(o, ctx):
+    """Centre of a shape: explicit "c", or "at" a shell id / element id, plus an optional "offset"."""
+    if "at" in o:
+        key = o["at"]
+        if ctx and key in ctx["shells"]:
+            c = ctx["shells"][key]
+        else:
+            ref = _ref_outline(key, ctx)
+            if ref["type"] == "circle":
+                c = _centre(ref, ctx)
+            else:
+                pts = outline(ref, ctx)
+                c = [sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts)]
+    else:
+        c = o["c"]
+    off = o.get("offset", [0, 0])
+    return [c[0] + off[0], c[1] + off[1]]
+
+
+def outline(o, ctx=None):
+    """Outline dict -> closed CCW [[x, y], ..].
+    Types: rrect, circle (c or at), poly (vertices may carry a fillet radius), blob (smooth union of shapes)."""
     t = o["type"]
     if t == "circle":
-        return circle_pts(o["c"], o["r"], o.get("seg", 72))
+        return circle_pts(_centre(o, ctx), _radius(o, ctx), o.get("seg", 72))
     if t == "rrect":
         x0, x1 = o["x"]
         y0, y1 = o["y"]
@@ -134,7 +167,170 @@ def outline(o):
         return ensure_ccw(fillet_poly([[x0, y0, r[0]], [x1, y0, r[1]], [x1, y1, r[2]], [x0, y1, r[3]]]))
     if t == "poly":
         return ensure_ccw(fillet_poly(o["pts"]))
+    if t == "blob":
+        return _blob(o, ctx)
+    if t == "ref":
+        return outline(_ref_outline(o["at"], ctx), ctx)
     raise ValueError("unknown outline type: " + str(t))
+
+
+def _radius(o, ctx):
+    r = o.get("r")
+    if r is None:
+        r = _ref_outline(o["at"], ctx)["r"]
+    return r + o.get("grow", 0.0)
+
+
+# ---------------------------------------------------- blob (smooth union) --
+def _sdf(o, ctx):
+    """Shape -> signed distance function f(x, y), negative inside; "grow" expands the shape."""
+    t = o["type"]
+    grow = o.get("grow", 0.0)
+    if t == "circle":
+        c, r = _centre(o, ctx), _radius(o, ctx)
+        return lambda x, y: math.hypot(x - c[0], y - c[1]) - r
+    if t == "rrect":
+        x0, x1 = o["x"]
+        y0, y1 = o["y"]
+        rr = o.get("r", [0, 0, 0, 0])
+        if not isinstance(rr, list):
+            rr = [rr, rr, rr, rr]
+        cx, cy, hx, hy = (x0 + x1) / 2.0, (y0 + y1) / 2.0, (x1 - x0) / 2.0, (y1 - y0) / 2.0
+
+        def f(x, y):
+            qx, qy = x - cx, y - cy
+            r = rr[2] if qx > 0 and qy > 0 else rr[1] if qx > 0 else rr[3] if qy > 0 else rr[0]
+            ax, ay = abs(qx) - hx + r, abs(qy) - hy + r
+            return min(max(ax, ay), 0.0) + math.hypot(max(ax, 0.0), max(ay, 0.0)) - r - grow
+        return f
+    if t == "ref":
+        ref = dict(_ref_outline(o["at"], ctx))
+        ref["grow"] = ref.get("grow", 0.0) + grow
+        return _sdf(ref, ctx)
+    pts = outline(o, ctx)
+
+    def g(x, y):
+        best = None
+        n = len(pts)
+        for i in range(n):
+            ax, ay = pts[i]
+            bx, by = pts[(i + 1) % n]
+            dx, dy = bx - ax, by - ay
+            L2 = dx * dx + dy * dy
+            t = 0.0 if L2 == 0 else max(0.0, min(1.0, ((x - ax) * dx + (y - ay) * dy) / L2))
+            d = math.hypot(x - ax - t * dx, y - ay - t * dy)
+            best = d if best is None else min(best, d)
+        return (-best if point_in_poly(x, y, pts) else best) - grow
+    return g
+
+
+def _bbox(o, ctx):
+    t = o["type"]
+    if t == "circle":
+        c, r = _centre(o, ctx), _radius(o, ctx)
+        return [c[0] - r, c[1] - r, c[0] + r, c[1] + r]
+    if t == "ref":
+        b = _bbox(_ref_outline(o["at"], ctx), ctx)
+        g = o.get("grow", 0.0)
+        return [b[0] - g, b[1] - g, b[2] + g, b[3] + g]
+    pts = outline(o, ctx)
+    g = o.get("grow", 0.0)
+    return [min(p[0] for p in pts) - g, min(p[1] for p in pts) - g, max(p[0] for p in pts) + g, max(p[1] for p in pts) + g]
+
+
+def _smin(a, b, k):
+    if k <= 0:
+        return min(a, b)
+    h = max(k - abs(a - b), 0.0) / k
+    return min(a, b) - h * h * k * 0.25
+
+
+def _blob(o, ctx):
+    """Smooth union of shapes (polynomial smooth-min, fillet ~ "smooth" mm), contoured by marching squares."""
+    fs = [_sdf(s, ctx) for s in o["shapes"]]
+    k = float(o.get("smooth", 2000))
+    step = float(o.get("grid", 200))
+
+    def field(x, y):
+        d = fs[0](x, y)
+        for f in fs[1:]:
+            d = _smin(d, f(x, y), k)
+        return d
+
+    boxes = [_bbox(s, ctx) for s in o["shapes"]]
+    pad = k + 3 * step
+    x0, y0 = min(b[0] for b in boxes) - pad, min(b[1] for b in boxes) - pad
+    nx = int((max(b[2] for b in boxes) + pad - x0) / step) + 2
+    ny = int((max(b[3] for b in boxes) + pad - y0) / step) + 2
+    val = [[field(x0 + i * step, y0 + j * step) for i in range(nx)] for j in range(ny)]
+
+    def edge_pt(key):
+        kind, i, j = key
+        i2, j2 = (i + 1, j) if kind == "h" else (i, j + 1)
+        a, b = val[j][i], val[j2][i2]
+        t = a / (a - b) if a != b else 0.5
+        return [x0 + (i + t * (i2 - i)) * step, y0 + (j + t * (j2 - j)) * step]
+
+    nbr = {}
+
+    def link(p, q):
+        nbr.setdefault(p, []).append(q)
+        nbr.setdefault(q, []).append(p)
+
+    for j in range(ny - 1):
+        for i in range(nx - 1):
+            va, vb, vc, vd = val[j][i], val[j][i + 1], val[j + 1][i + 1], val[j + 1][i]
+            case = (va < 0) | ((vb < 0) << 1) | ((vc < 0) << 2) | ((vd < 0) << 3)
+            if case in (0, 15):
+                continue
+            e = [("h", i, j), ("v", i + 1, j), ("h", i, j + 1), ("v", i, j)]
+            centre_in = (va + vb + vc + vd) < 0
+            pairs = {1: [(3, 0)], 2: [(0, 1)], 3: [(3, 1)], 4: [(1, 2)], 6: [(0, 2)], 7: [(3, 2)], 8: [(2, 3)],
+                     9: [(0, 2)], 11: [(1, 2)], 12: [(1, 3)], 13: [(0, 1)], 14: [(3, 0)],
+                     5: [(3, 2), (0, 1)] if centre_in else [(3, 0), (1, 2)],
+                     10: [(0, 3), (1, 2)] if centre_in else [(0, 1), (2, 3)]}[case]
+            for a, b in pairs:
+                link(e[a], e[b])
+
+    loops, seen = [], set()
+    for start in nbr:
+        if start in seen:
+            continue
+        loop, prev, cur = [], None, start
+        while cur not in seen:
+            seen.add(cur)
+            loop.append(edge_pt(cur))
+            nxt = [q for q in nbr[cur] if q != prev and q not in seen]
+            if not nxt:
+                break
+            prev, cur = cur, nxt[0]
+        if len(loop) > 2:
+            loops.append(loop)
+    best = max(loops, key=lambda L: abs(_signed_area(L)))
+    return ensure_ccw(_simplify_closed(best, float(o.get("tol", 15))))
+
+
+def _simplify_closed(pts, tol):
+    """Douglas-Peucker on a closed polyline."""
+    def dp(seq):
+        if len(seq) < 3:
+            return seq
+        ax, ay = seq[0]
+        bx, by = seq[-1]
+        dx, dy = bx - ax, by - ay
+        L = math.hypot(dx, dy) or 1e-9
+        far, idx = -1.0, 0
+        for i in range(1, len(seq) - 1):
+            d = abs(dy * (seq[i][0] - ax) - dx * (seq[i][1] - ay)) / L
+            if d > far:
+                far, idx = d, i
+        if far <= tol:
+            return [seq[0], seq[-1]]
+        return dp(seq[:idx + 1])[:-1] + dp(seq[idx:])
+    n = len(pts)
+    far = max(range(n), key=lambda i: (pts[i][0] - pts[0][0]) ** 2 + (pts[i][1] - pts[0][1]) ** 2)
+    out = dp(pts[:far + 1])[:-1] + dp(pts[far:] + [pts[0]])[:-1]
+    return out if len(out) >= 3 else pts
 
 
 def offset_closed(pts, d):
@@ -440,6 +636,7 @@ def build(spec):
     """Spec dict -> list of primitives."""
     prims = []
     lv = dict((l["name"], l["elev"]) for l in spec["levels"])
+    ctx = make_ctx(spec)
 
     def z_of(val):
         return lv[val] if isinstance(val, str) else float(val)
@@ -473,7 +670,7 @@ def build(spec):
     tcfg = spec["trees"]
     keepout = []
     for k in tcfg.get("keepout", []):
-        keepout.append((offset_closed(outline(k["outline"]), -tcfg.get("clearance", 400)), z_of(k["top"]) + tcfg.get("clearance", 400)))
+        keepout.append((offset_closed(outline(k["outline"], ctx), -tcfg.get("clearance", 400)), z_of(k["top"]) + tcfg.get("clearance", 400)))
     def clashes(br):
         for p in br:
             for poly, ztop in keepout:
@@ -521,20 +718,21 @@ def build(spec):
                 z0, z1 = z_of(e["top"]) - e["t"], z_of(e["top"])
             else:
                 z0, z1 = z_of(e["z"][0]), z_of(e["z"][1])
-            holes = [lift(outline(h), z0) for h in e.get("holes", [])]
-            add("extrude", layer, name, pts=lift(outline(e["outline"]), z0), holes=holes,
-                vec=[0, 0, z1 - z0], cap=True)
+            holes = [lift(outline(h, ctx), z0) for h in e.get("holes", [])]
+            add("extrude", layer, name, pts=lift(outline(e["outline"], ctx), z0), holes=holes,
+                vec=[0, 0, z1 - z0], cap=True, smooth=e["outline"]["type"] == "blob")
         elif k == "ring":
             z0, z1 = z_of(e["z"][0]), z_of(e["z"][1])
-            out = outline(e["outline"])
+            out = outline(e["outline"], ctx)
             add("extrude", layer, name, pts=lift(out, z0), holes=[lift(offset_closed(out, e["t"]), z0)],
-                vec=[0, 0, z1 - z0], cap=True)
+                vec=[0, 0, z1 - z0], cap=True, smooth=e["outline"]["type"] == "blob")
         elif k == "glass":
             z0, z1 = z_of(e["z"][0]), z_of(e["z"][1])
-            pts = outline(e["outline"])
+            pts = outline(e["outline"], ctx)
             if e.get("inset"):
                 pts = offset_closed(pts, e["inset"])
-            add("extrude", layer, name, pts=lift(pts, z0), holes=[], vec=[0, 0, z1 - z0], cap=False)
+            add("extrude", layer, name, pts=lift(pts, z0), holes=[], vec=[0, 0, z1 - z0], cap=False,
+                smooth=e["outline"]["type"] == "blob")
         elif k == "panel":
             z0, z1 = z_of(e["z"][0]), z_of(e["z"][1])
             for n, path in enumerate(e["paths"]):
@@ -597,7 +795,7 @@ def clearance_report(spec, step=500.0):
     can = Canopy(spec["canopy"])
     out = []
     for k in spec["trees"].get("keepout", []):
-        poly = outline(k["outline"])
+        poly = outline(k["outline"], make_ctx(spec))
         top = lv[k["top"]] if isinstance(k["top"], str) else float(k["top"])
         xs = [p[0] for p in poly]
         ys = [p[1] for p in poly]
@@ -616,3 +814,18 @@ def clearance_report(spec, step=500.0):
             x += step
         out.append("canopy clearance over roof min %d mm (%d grid pts open sky)" % (worst if worst is not None else -1, uncovered))
     return "; ".join(out)
+
+
+def dome_report(spec):
+    """Per shell: plan cell area and prominence (apex minus its highest valley). A dome reads as distinct
+    when it has a real cell and stands clearly above the valleys around it."""
+    can = Canopy(spec["canopy"])
+    rows = []
+    for i, s in enumerate(can.shells):
+        b = can.bounds[i]
+        n = len(b)
+        area = sum(0.5 * b[k][0] ** 2 * (2 * math.pi / n) for k in range(n))
+        valley = [p[2] for nb, pts in can.boundary_runs(i) if nb >= 0 for p in pts]
+        top = max(valley) if valley else s["eave"]
+        rows.append({"id": s["id"], "cell_m2": round(area / 1e6, 1), "prominence_mm": int(round(s["apex"] - top))})
+    return rows

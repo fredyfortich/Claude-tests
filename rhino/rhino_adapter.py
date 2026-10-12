@@ -57,9 +57,15 @@ def to_rhino(prim, k, tol):
         return list(breps) if breps else [rail]
     if kind == "extrude":
         closed = prim.get("closed", True)
-        crv = rg.PolylineCurve(_pts(prim["pts"], k, closed))
+        smooth = closed and prim.get("smooth", False)
+
+        def loop(pts):
+            if smooth:
+                return rg.Curve.CreateInterpolatedCurve(_pts(pts, k), 3, rg.CurveKnotStyle.ChordPeriodic)
+            return rg.PolylineCurve(_pts(pts, k, closed))
+        crv = loop(prim["pts"])
         vec = rg.Vector3d(prim["vec"][0] * k, prim["vec"][1] * k, prim["vec"][2] * k)
-        holes = [rg.PolylineCurve(_pts(h, k, True)) for h in prim.get("holes", [])]
+        holes = [loop(h) for h in prim.get("holes", [])]
         if closed and prim.get("cap", True):
             loops = List[rg.Curve]()
             loops.Add(crv)
