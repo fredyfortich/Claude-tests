@@ -4,7 +4,8 @@
 #   spec_path  str      path to pavilion_spec.json (blank = spec embedded below)
 #   centers    Point3d  List access. Canopy shell centres; replaces S1.. in order, extra points add shells
 #   R, eave, apex, profile_k            canopy module (mm / exponent)
-#   tilt_rise, tilt_dir                 inclined rims: rise (mm) at the high side, plan direction (deg, 270 = lake)
+#   tilt_slope, tilt_top, tilt_floor    inclined rims (shared rim field): fall per mm outward, plateau height, lowest rim (mm)
+#   tilt_centre  Point3d                 heart of the rim field (model units); tilt_slope 0 = level rims
 #   rings, member_len                    gridshell density
 #   branches, branch_z, reach            tree columns
 #   L01, L02                             level elevations (mm)
@@ -35,14 +36,20 @@ def _spec():
             lv["elev"] = globals()[lv["name"]]
     if _given("skin"):
         mod["skin"] = bool(skin)
-    if _given("tilt_rise") or _given("tilt_dir"):
-        t = dict(mod.get("tilt", {"mode": "global"}))
-        if _given("tilt_rise"):
-            t["rise"] = float(tilt_rise)
-        if _given("tilt_dir"):
-            t["dir_deg"] = float(tilt_dir)
-            if t.get("mode") not in ("global", "radial"):
-                t["mode"] = "global"
+    keys = ("tilt_slope", "tilt_top", "tilt_floor", "tilt_centre")
+    if any(_given(n) for n in keys):
+        t = dict(mod.get("tilt", {}))
+        if t.get("mode") != "field":
+            t = {"mode": "field", "centre": [0.0, 0.0], "plateau": 0.0, "top": mod["eave"], "slope": 0.0}
+        if _given("tilt_slope"):
+            t["slope"] = float(tilt_slope)
+        if _given("tilt_top"):
+            t["top"] = float(tilt_top)
+        if _given("tilt_floor"):
+            t["floor"] = float(tilt_floor)
+        if _given("tilt_centre"):
+            k = unit_scale(Rhino.RhinoDoc.ActiveDoc)
+            t["centre"] = [tilt_centre.X / k, tilt_centre.Y / k]
         mod["tilt"] = t
     if _given("centers") and len(centers):
         k = unit_scale(Rhino.RhinoDoc.ActiveDoc)

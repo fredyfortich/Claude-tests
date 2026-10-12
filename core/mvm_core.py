@@ -500,52 +500,78 @@ def _strip(ring_a, ring_b):
 
 
 # ------------------------------------------------------------------ canopy --
+TILT_MODES = ("none", "global", "radial", "field")
+
+
 def shell_params(cfg):
-    """Resolved shell parameters: module values, per-shell overrides and the rim tilt.
-    Tilt: the rim lies on an inclined plane through the shell centre at the eave height; it is "rise"
-    higher at the rim on the side "u" points to and "rise" lower opposite. Modes: global (one plan
-    direction dir_deg), radial (from "centre": sense "out" = rims high away from it, "in" = rims high
-    toward it), none. "slope" (rise / R) overrides "rise" so every shell tilts by the same angle.
-    A shell's own "tilt" dict overrides the module tilt."""
+    """Resolved shell parameters: module values, per-shell overrides and the rim inclination.
+
+    canopy.module.tilt modes:
+      none    level rims at each shell's eave.
+      field   ONE rim-height field shared by every shell (recommended): e = top on a plateau of radius
+              "plateau" around "centre", falling by "slope" (mm per mm) outward, never below "floor".
+              Neighbouring rims meet flush, so no steps or slots appear between shells.
+      global  each rim on its own plane, high side toward plan direction dir_deg.
+      radial  each rim on its own plane, high side away from ("sense": "out") or toward ("in") "centre".
+    For global/radial, "slope" (rise / R) or "rise" (mm) sets the tilt; a shell's own "tilt" dict
+    overrides the module (shell "rise" beats module "slope"); a shell "mode": "none" is authoritative.
+    In field mode per-shell eaves and tilts are ignored, because they would break the flush rims."""
     mod = cfg["module"]
     tilt = mod.get("tilt", {"mode": "none"})
+    mode0 = tilt.get("mode", "none")
+    if mode0 not in TILT_MODES:
+        raise ValueError("canopy.module.tilt.mode must be one of %s, got %r" % (TILT_MODES, mode0))
     out = []
     for s in cfg["shells"]:
+        R = s.get("R", mod["R"])
+        sh = {"id": s["id"], "c": s["c"], "R": R, "apex": s.get("apex", mod["apex"]),
+              "eave": s.get("eave", mod["eave"]), "p": s.get("p", mod["profile_p"]),
+              "k": s.get("k", mod.get("profile_k", 1.0)), "u": [0.0, 0.0], "rise": 0.0, "field": None}
+        if mode0 == "field":
+            sh["eave"] = mod["eave"]
+            sh["field"] = {"c": tilt["centre"], "plateau": float(tilt.get("plateau", 0.0)),
+                           "top": float(tilt.get("top", mod["eave"])), "slope": float(tilt["slope"]),
+                           "floor": float(tilt.get("floor", -1e9))}
+            out.append(sh)
+            continue
+        st = s.get("tilt", {})
         t = dict(tilt)
-        t.update(s.get("tilt", {}))
-        mode = t.get("mode", "global" if "dir_deg" in t else "none")
-        u, rise = [0.0, 0.0], float(t.get("rise", 0.0))
-        if mode == "global" or "dir_deg" in s.get("tilt", {}):
+        t.update(st)
+        mode = t.get("mode", "none")
+        if mode not in TILT_MODES or mode == "field":
+            raise ValueError("shell %s tilt mode must be none/global/radial, got %r" % (s["id"], mode))
+        if mode == "none":
+            out.append(sh)
+            continue
+        if "rise" in st and "slope" not in st:
+            rise = float(st["rise"])
+        elif "slope" in t:
+            rise = float(t["slope"]) * R
+        else:
+            rise = float(t.get("rise", 0.0))
+        if mode == "global":
             a = math.radians(t.get("dir_deg", 270.0))
             u = [math.cos(a), math.sin(a)]
-        elif mode == "radial":
+        else:
+            sense = t.get("sense", "out")
+            if sense not in ("in", "out"):
+                raise ValueError("shell %s tilt sense must be 'in' or 'out', got %r" % (s["id"], sense))
             c0 = t.get("centre", [0.0, 0.0])
             d = [s["c"][0] - c0[0], s["c"][1] - c0[1]]
             n = math.hypot(d[0], d[1])
-            if n > 1e-6:
-                sign = -1.0 if t.get("sense", "out") == "in" else 1.0
-                u = [sign * d[0] / n, sign * d[1] / n]
-            if t.get("blend_dir_deg") is not None:
-                a = math.radians(t["blend_dir_deg"])
-                w = float(t.get("blend", 0.5))
-                v = [(1 - w) * u[0] + w * math.cos(a), (1 - w) * u[1] + w * math.sin(a)]
-                n = math.hypot(v[0], v[1]) or 1.0
-                u = [v[0] / n, v[1] / n]
-        else:
-            rise = 0.0
-        if mode != "none" and "slope" in t:
-            rise = float(t["slope"]) * s.get("R", mod["R"])
-        out.append({
-            "id": s["id"], "c": s["c"],
-            "R": s.get("R", mod["R"]), "apex": s.get("apex", mod["apex"]),
-            "eave": s.get("eave", mod["eave"]), "p": s.get("p", mod["profile_p"]),
-            "k": s.get("k", mod.get("profile_k", 1.0)), "u": u, "rise": rise,
-        })
+            sign = -1.0 if sense == "in" else 1.0
+            u = [sign * d[0] / n, sign * d[1] / n] if n > 1e-6 else [0.0, 0.0]
+        sh["u"], sh["rise"] = u, rise
+        out.append(sh)
     return out
 
 
 def eave_at(sh, x, y):
-    """Rim height of a shell above plan point (x, y): its inclined rim plane."""
+    """Rim height of a shell above plan point (x, y): the shared field, or the shell's rim plane."""
+    f = sh.get("field")
+    if f:
+        d = math.hypot(x - f["c"][0], y - f["c"][1])
+        return max(f["floor"], f["top"] - max(0.0, d - f["plateau"]) * f["slope"])
     return sh["eave"] + sh["rise"] * ((x - sh["c"][0]) * sh["u"][0] + (y - sh["c"][1]) * sh["u"][1]) / sh["R"]
 
 
@@ -619,6 +645,30 @@ class Canopy(object):
         y = s["c"][1] + r * math.sin(th)
         z = self.dome(i, x, y)
         return [x, y, z if z is not None else eave_at(s, x, y)]
+
+    def others(self, i, x, y):
+        """Upper envelope of every shell except i at (x, y); None where no other shell covers it."""
+        zs = [z for z in (self.dome(j, x, y) for j in range(len(self.shells)) if j != i) if z is not None]
+        return max(zs) if zs else None
+
+    def flush(self, i, pts, tol=50.0):
+        """True when the rest of the roof meets shell i's boundary run at the same height (a real valley)."""
+        for p in pts:
+            z = self.others(i, p[0], p[1])
+            if z is None or abs(z - p[2]) > tol:
+                return False
+        return True
+
+    def rim_steps(self, tol=50.0):
+        """Open steps: points on a shell's free edge that hang above the rest of the roof."""
+        worst, count = 0.0, 0
+        for i in range(len(self.shells)):
+            for nb, pts in self.boundary_runs(i):
+                for p in pts:
+                    z = self.others(i, p[0], p[1])
+                    if z is not None and p[2] - z > tol:
+                        worst, count = max(worst, p[2] - z), count + 1
+        return worst, count
 
     def boundary_runs(self, i):
         """Split the cell boundary into runs: (-1, pts) eave arcs, (j, pts) valley shared with shell j."""
@@ -752,9 +802,12 @@ def build(spec):
         v, f = tube_mesh(segs, mod.get("member_d", 140) / 2.0)
         add("mesh", "Roof", sid + "_lattice", v=v, f=f)
         for nb, pts in can.boundary_runs(i):
-            if nb == -1 and len(pts) > 1:
+            if len(pts) < 2:
+                continue
+            flush = nb >= 0 and can.flush(i, pts)
+            if not flush:
                 add("pipe", "Roof", sid + "_eave_beam", pts=pts, r=[mod.get("edge_d", 260) / 2.0] * 2)
-            elif nb > i and len(pts) > 1:
+            elif nb > i:
                 v, f = _ribbon(pts, mod.get("gutter_w", 900), mod.get("gutter_depth", -150))
                 add("mesh", "Roof", "gutter_" + sid + "_" + can.shells[nb]["id"], v=v, f=f)
 
@@ -908,6 +961,8 @@ def clearance_report(spec, step=500.0):
                 y += step
             x += step
         out.append("canopy over %s min %d mm (%d pts open sky)" % (k.get("id", "keepout"), worst if worst is not None else -1, uncovered))
+    step, n = can.rim_steps()
+    out.append("rim steps > 50 mm: %d (max %d mm)" % (n, step))
     return "; ".join(out)
 
 
@@ -920,7 +975,8 @@ def dome_report(spec):
         b = can.bounds[i]
         n = len(b)
         area = sum(0.5 * b[k][0] ** 2 * (2 * math.pi / n) for k in range(n))
-        valley = [p[2] for nb, pts in can.boundary_runs(i) if nb >= 0 for p in pts]
-        top = max(valley) if valley else s["eave"]
+        runs = can.boundary_runs(i)
+        valley = [p[2] for nb, pts in runs if nb >= 0 for p in pts]
+        top = max(valley) if valley else max(p[2] for nb, pts in runs for p in pts)
         rows.append({"id": s["id"], "cell_m2": round(area / 1e6, 1), "prominence_mm": int(round(s["apex"] - top))})
     return rows

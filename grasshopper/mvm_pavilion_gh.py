@@ -5,7 +5,7 @@
 # Do not edit: change the sources and regenerate.
 import json
 
-SPEC = json.loads(r'''{"meta":{"project":"MVM Canopy Pavilion","units":"mm","source":"two AI images, 1376x768 each: spec/source_image.webp (white physical model) and spec/reference_image_2.webp (photoreal, on the lake)","view":"perspective","origin":"S3 tree-column base at L00 (terrace / ground floor finish)","origin_px":[700,377],"axes":"X along the main facade (image left to right), Y away from the camera, Z up","mm_per_px":41,"mm_per_px_note":"image 1 at the facade plane (y = 0), from its fitted camera (f ~ 2000 px, ~83 m away); varies ~10 % front to back","snap":100,"scale_ref":"ground storey L00 to L01 = 3800 mm (92 px at 41 mm/px; matches lounge sofas and the conversation-pit ring)","scale_check":[{"ref":"sun lounger length 2000 mm","px":50,"implies_mm_per_px":40,"status":"agrees"},{"ref":"balcony railing 1100 mm","px":16,"implies_mm_per_px":69,"status":"CONFLICT 1.7x: railing reads 0.65 m at 41 mm/px; spec uses a code-compliant 1100 mm railing"}],"flags":["PERSPECTIVE: two AI-rendered views, no orthographic drawings. Each view has its own fitted camera (meta.views, tools/fit_camera.py). The two images are not mutually consistent to better than ~15 px; plan depths (Y) remain the weakest dimension.","SCALE: railing vs storey/lounger references disagree by 1.7x in image 1; storey + lounger chosen (human to confirm).","DESIGN DELTA: canopy raised over the pure image fit so rims clear the pod roofs by >= 900 mm. Rims are inclined (radial tilt, slope 1/16 ~ 3.6 deg, mean eave 7900, S6 7350): measured in both images, rims rise toward the S1|S3|S2 heart and the outer tips droop. Rim heights 6.8-9.4 m; dome rise ~3.5 m (images ~3.1-3.3 m).","CANOPY: six distinct domes, verified with dome_report (every cell >= 86 m2, every prominence >= 1.2 m) and by an adversarial render check. Front S1 S3 S6; a smaller, lower S5 (rounded cap, k 2.2) sits between S3 and S6, and its tree rises out of the round planter; back S2 (tallest) and S4 (hidden from image 2, as in the photo). Positions are editable points in Grasshopper.","L01: rounded slab edge (blob) referenced to the drum, S1 and S6 - it follows when those move. Trunks stand free just outside the edge, as in both images. Upper floor = rounded west pod + east pod with an open, canopy-covered deck between (both images).","TREES: crowns adapt to the pods and to 2.4 m headroom over the open L01 deck (a clashing branch shortens its reach; S2/S4 branch above the pod roofs/deck headroom).","SITE ORIENTATION: base plate and pool read rotated about 40 deg to the facade (building faces the promontory corner). Pool modelled rotated 40 deg; plate kept as context only.","UNSEEN: rear facade, building depth (assumed 13 m), interior layout, pod roofs at L02 = 6800 (upper floor 3.0 m floor-to-floor).","NO GEOMETRY (not in layer standard): vegetation and trees, rocks and boulders, water bodies (lagoon and pool water), acrylic base plate, loose furniture other than loungers and the lounge ring, lighting.","NOT MODELLED v1: mullions, discrete canopy infill panels (skin mesh stands in for ETFE/glass), bundled multi-stem trunks, terrace steps/veranda, planter openings in the deck, stair balustrades. Facade::Opaque is empty in v1."],"context":{"site_plate":{"outline_xy":[[-28600,-4900],[-6700,-42900],[23400,-19200],[1500,18800]],"top":-4200,"conf":0.3,"note":"acrylic plate / lagoon, no geometry"}}},"levels":[{"name":"L-1","elev":-3600,"note":"lower landscape shelf / rock edge"},{"name":"L00","elev":0,"note":"terrace and ground floor"},{"name":"L01","elev":3800,"note":"upper floor and wrap-around balcony"},{"name":"L02","elev":6800,"note":"roof of the enclosure, under the canopy"}],"grids":[{"id":"A","start":[-24000,0],"end":[22000,0]},{"id":"B","start":[-24000,8000],"end":[22000,8000]},{"id":"1","start":[-14000,-12000],"end":[-14000,18000]},{"id":"2","start":[-7000,-12000],"end":[-7000,18000]},{"id":"3","start":[0,-12000],"end":[0,18000]},{"id":"4","start":[7500,-12000],"end":[7500,18000]},{"id":"5","start":[14000,-12000],"end":[14000,18000]}],"canopy":{"layer":"Roof","type":"umbrella gridshell cluster: roof = upper envelope of domes with inclined rims, valleys carry gutters","module":{"R":8000,"eave":7900,"apex":11400,"profile_p":2.0,"profile_k":1.7,"tilt":{"mode":"radial","centre":[-7000,0],"sense":"in","slope":0.0625,"note":"rims incline ~3.6 deg, high toward the cluster heart (S1|S3|S2 valley), outer tips droop; gutters fall outward to the valley mouths"},"rings":7,"member_len":1400,"member_d":120,"edge_d":250,"gutter_w":900,"gutter_depth":-150,"boundary_samples":144,"skin":true},"shells":[{"id":"S1","c":[-13500,-2000],"conf":0.6},{"id":"S3","c":[0,0],"R":6500,"conf":0.7},{"id":"S5","c":[5500,-4500],"R":6500,"apex":10500,"k":2.2,"conf":0.6},{"id":"S6","c":[13300,0],"R":8500,"apex":10100,"eave":7350,"conf":0.6},{"id":"S2","c":[-6000,11000],"apex":12900,"conf":0.6},{"id":"S4","c":[10100,10000],"apex":11000,"conf":0.5}]},"trees":{"layer":"Structure","type":"one branching tree column per shell centre (trunk + branches to the gridshell)","base":"L00","branch_z":5000,"branches":6,"branch_rot":15,"reach":0.6,"lift":0.35,"trunk_d":[600,450],"branch_d":[300,160],"clearance":400,"keepout":[{"id":"west pod roof","outline":{"type":"ref","at":"Glass_L01_W"},"top":"L02"},{"id":"east pod roof","outline":{"type":"ref","at":"Glass_L01_E"},"top":"L02"},{"id":"L01 deck headroom","outline":{"type":"ref","at":"Slab_L01"},"top":6200,"inset":600}],"conf":0.5},"elements":[{"id":"Deck_L00","kind":"slab","layer":"Structure","top":"L00","t":500,"conf":0.5,"outline":{"type":"poly","pts":[[-23000,1200,0],[-18000,-3000,0],[-18000,-11500,1500],[8250,-11500,0],[18800,-2650,0],[19500,-2650,0],[19500,22000,2000],[-23000,22000,2000]]},"holes":[{"type":"circle","c":[-2500,-5000],"r":3600}]},{"id":"Plinth_retaining_wall","kind":"ring","layer":"Structure","t":600,"z":["L-1",-500],"conf":0.4,"outline":{"type":"poly","pts":[[-23000,1200,0],[-18000,-3000,0],[-18000,-11500,1500],[8250,-11500,0],[18800,-2650,0],[19500,-2650,0],[19500,22000,2000],[-23000,22000,2000]]}},{"id":"Bastion_planter","kind":"ring","layer":"Structure","t":600,"z":["L-1",600],"conf":0.5,"outline":{"type":"circle","c":[-12800,-8600],"r":5300}},{"id":"Slab_L01","kind":"slab","layer":"Structure","top":"L01","t":350,"conf":0.6,"note":"rounded edge: wraps the west drum, forward lobe under S1, straight run just behind the S3/S5 trunks, east wing stepped back at S6","outline":{"type":"blob","smooth":1500,"grid":100,"tol":10,"shapes":[{"type":"ref","at":"Glass_L00","grow":1400},{"type":"circle","at":"Core_West_stone_drum","grow":300},{"type":"capsule","a":{"at":"S1","offset":[-2500,3800]},"b":{"at":"S1","offset":[4300,3800]},"r":2800},{"type":"circle","at":"S1","offset":[2500,4800],"r":4300},{"type":"capsule","a":{"at":"S6","offset":[1500,4600]},"b":{"at":"S6","offset":[3300,6500]},"r":2000},{"type":"ref","at":"Glass_L01_E","grow":800}]}},{"id":"Roof_L02_W","kind":"slab","layer":"Roof","top":"L02","t":300,"conf":0.4,"outline":{"type":"ref","at":"Glass_L01_W","grow":700}},{"id":"Roof_L02_E","kind":"slab","layer":"Roof","top":"L02","t":300,"conf":0.3,"outline":{"type":"ref","at":"Glass_L01_E","grow":700}},{"id":"Glass_L00","kind":"glass","layer":"Facade::Glass","z":["L00",3450],"conf":0.5,"outline":{"type":"rrect","x":[-17000,13500],"y":[2000,15000],"r":[3000,500,500,3000]}},{"id":"Glass_L01_W","kind":"glass","layer":"Facade::Glass","z":["L01",6500],"conf":0.45,"note":"west pod: rounded west end over the stone drum, rounded east end at the open deck","outline":{"type":"rrect","x":[-17600,-7100],"y":[1500,15000],"r":[4500,2500,500,3500]}},{"id":"Glass_L01_E","kind":"glass","layer":"Facade::Glass","z":["L01",6500],"conf":0.35,"note":"east pod around the east core","outline":{"type":"rrect","x":[11000,16100],"y":[3600,13500],"r":[2500,2500,500,500]}},{"id":"Railing_L01","kind":"glass","layer":"Facade::Glass","z":["L01",4900],"inset":150,"conf":0.6,"outline":{"type":"ref","at":"Slab_L01"}},{"id":"Core_West_stone_drum","kind":"solid","layer":"Circulation::Core","z":["L00",3450],"conf":0.5,"note":"ground-floor stone drum (stair) under the rounded west end of L01","outline":{"type":"circle","c":[-16000,2000],"r":3000}},{"id":"Core_East_service","kind":"solid","layer":"Circulation::Core","z":["L00","L02"],"conf":0.35,"outline":{"type":"rrect","x":[11500,14700],"y":[4000,8000],"r":[300,300,300,300]}},{"id":"Stair_West_landscape","kind":"stair","layer":"Circulation::Stairs","start":[-22500,-7500],"dir":50,"width":2400,"z":["L-1","L00"],"riser":170,"tread":300,"conf":0.4},{"id":"Pool_floor","kind":"slab","layer":"Structure","top":-1600,"t":300,"conf":0.5,"outline":{"type":"poly","pts":[[10200,-20350,0],[23950,-8800,0],[18800,-2650,0],[5050,-14200,0]]}},{"id":"Pool_walls","kind":"ring","layer":"Structure","t":300,"z":[-1600,0],"conf":0.5,"outline":{"type":"poly","pts":[[10200,-20350,0],[23950,-8800,0],[18800,-2650,0],[5050,-14200,0]]}},{"id":"Pool_glass_edge","kind":"panel","layer":"Facade::Glass","z":[-1900,100],"conf":0.5,"paths":[[[5050,-14200],[10200,-20350],[23950,-8800],[18800,-2650]]]},{"id":"Pool_support_base","kind":"solid","layer":"Structure","z":["L-1",-1900],"conf":0.4,"outline":{"type":"poly","pts":[[9650,-19750,3000],[19600,-11400,0],[15500,-6500,0],[5550,-14850,3000]]}},{"id":"Lounge_pit_floor","kind":"slab","layer":"Structure","top":-450,"t":200,"conf":0.5,"outline":{"type":"circle","c":[-2500,-5000],"r":3600}},{"id":"Lounge_seat_ring","kind":"ring","layer":"Interior elements","t":900,"z":[-450,0],"conf":0.5,"outline":{"type":"circle","c":[-2500,-5000],"r":3500}},{"id":"Lounge_fire_pit","kind":"solid","layer":"Interior elements","z":[-450,-100],"conf":0.5,"outline":{"type":"circle","c":[-2500,-5000],"r":700}},{"id":"Planter_round_E","kind":"ring","layer":"Interior elements","t":300,"z":["L00",600],"conf":0.5,"note":"planter ring around the S5 tree base","outline":{"type":"circle","at":"S5","r":2000}},{"id":"Lounger_1","kind":"box","layer":"Interior elements","c":[9300,-1700],"size":[2000,700,350],"rot":60,"z":"L00","conf":0.4},{"id":"Lounger_2","kind":"box","layer":"Interior elements","c":[10800,-2400],"size":[2000,700,350],"rot":60,"z":"L00","conf":0.4},{"id":"Massing_L00","kind":"mass","layer":"Massing","z":["L00","L01"],"conf":0.5,"outline":{"type":"ref","at":"Glass_L00"}},{"id":"Massing_L01_W","kind":"mass","layer":"Massing","z":["L01","L02"],"conf":0.45,"outline":{"type":"ref","at":"Glass_L01_W"}},{"id":"Massing_L01_E","kind":"mass","layer":"Massing","z":["L01","L02"],"conf":0.35,"outline":{"type":"ref","at":"Glass_L01_E"}}]}''')
+SPEC = json.loads(r'''{"meta":{"project":"MVM Canopy Pavilion","units":"mm","source":"two AI images, 1376x768 each: spec/source_image.webp (white physical model) and spec/reference_image_2.webp (photoreal, on the lake)","view":"perspective","origin":"S3 tree-column base at L00 (terrace / ground floor finish)","origin_px":[700,377],"axes":"X along the main facade (image left to right), Y away from the camera, Z up","mm_per_px":41,"mm_per_px_note":"image 1 at the facade plane (y = 0), from its fitted camera (f ~ 2000 px, ~83 m away); varies ~10 % front to back","snap":100,"scale_ref":"ground storey L00 to L01 = 3800 mm (92 px at 41 mm/px; matches lounge sofas and the conversation-pit ring)","scale_check":[{"ref":"sun lounger length 2000 mm","px":50,"implies_mm_per_px":40,"status":"agrees"},{"ref":"balcony railing 1100 mm","px":16,"implies_mm_per_px":69,"status":"CONFLICT 1.7x: railing reads 0.65 m at 41 mm/px; spec uses a code-compliant 1100 mm railing"}],"flags":["PERSPECTIVE: two AI-rendered views, no orthographic drawings. Each view has its own fitted camera (meta.views, tools/fit_camera.py). The two images are not mutually consistent to better than ~15 px; plan depths (Y) remain the weakest dimension.","SCALE: railing vs storey/lounger references disagree by 1.7x in image 1; storey + lounger chosen (human to confirm).","DESIGN DELTA: canopy raised over the pure image fit so rims clear the pod roofs by >= 800 mm. Rims are slightly inclined by ONE shared rim field (8.45 m at the S1|S3|S2 heart, falling 1:14 to a 7.35 m floor at the outer tips): measured in both images, rims rise toward the heart and droop at the free tips. A shared field keeps neighbouring rims flush (0 open steps); the images' stronger droop (tips ~6.8 m) is capped by the east-pod clearance. Per-shell eaves are ignored in field mode.","CANOPY: six distinct domes, verified with dome_report (every cell >= 86 m2, every prominence >= 1.0 m) and by an adversarial render check. Front S1 S3 S6; a smaller, lower S5 (rounded cap, k 2.2) sits between S3 and S6, and its tree rises out of the round planter; back S2 (tallest) and S4 (hidden from image 2, as in the photo). Positions are editable points in Grasshopper.","L01: rounded slab edge (blob) referenced to the drum, S1 and S6 - it follows when those move. Trunks stand free just outside the edge, as in both images. Upper floor = rounded west pod + east pod with an open, canopy-covered deck between (both images).","TREES: crowns adapt to the pods and to 2.4 m headroom over the open L01 deck (a clashing branch shortens its reach; S2/S4 branch above the pod roofs/deck headroom).","SITE ORIENTATION: base plate and pool read rotated about 40 deg to the facade (building faces the promontory corner). Pool modelled rotated 40 deg; plate kept as context only.","UNSEEN: rear facade, building depth (assumed 13 m), interior layout, pod roofs at L02 = 6800 (upper floor 3.0 m floor-to-floor).","NO GEOMETRY (not in layer standard): vegetation and trees, rocks and boulders, water bodies (lagoon and pool water), acrylic base plate, loose furniture other than loungers and the lounge ring, lighting.","NOT MODELLED v1: mullions, discrete canopy infill panels (skin mesh stands in for ETFE/glass), bundled multi-stem trunks, terrace steps/veranda, planter openings in the deck, stair balustrades. Facade::Opaque is empty in v1."],"context":{"site_plate":{"outline_xy":[[-28600,-4900],[-6700,-42900],[23400,-19200],[1500,18800]],"top":-4200,"conf":0.3,"note":"acrylic plate / lagoon, no geometry"}}},"levels":[{"name":"L-1","elev":-3600,"note":"lower landscape shelf / rock edge"},{"name":"L00","elev":0,"note":"terrace and ground floor"},{"name":"L01","elev":3800,"note":"upper floor and wrap-around balcony"},{"name":"L02","elev":6800,"note":"roof of the enclosure, under the canopy"}],"grids":[{"id":"A","start":[-24000,0],"end":[22000,0]},{"id":"B","start":[-24000,8000],"end":[22000,8000]},{"id":"1","start":[-14000,-12000],"end":[-14000,18000]},{"id":"2","start":[-7000,-12000],"end":[-7000,18000]},{"id":"3","start":[0,-12000],"end":[0,18000]},{"id":"4","start":[7500,-12000],"end":[7500,18000]},{"id":"5","start":[14000,-12000],"end":[14000,18000]}],"canopy":{"layer":"Roof","type":"umbrella gridshell cluster: roof = upper envelope of domes with inclined rims, valleys carry gutters","module":{"R":8000,"eave":7900,"apex":11400,"profile_p":2.0,"profile_k":1.7,"tilt":{"mode":"field","centre":[-8000,0],"plateau":6000,"top":8450,"slope":0.0714,"floor":7350,"note":"one rim-height field shared by all shells: 8.45 m plateau at the S1|S3|S2 heart, falling 1:14 (~4 deg) outward to a 7.35 m floor; rims meet flush (no steps), gutters fall outward"},"rings":7,"member_len":1400,"member_d":120,"edge_d":250,"gutter_w":900,"gutter_depth":-150,"boundary_samples":144,"skin":true},"shells":[{"id":"S1","c":[-13500,-2000],"conf":0.6},{"id":"S3","c":[0,0],"R":6500,"conf":0.7},{"id":"S5","c":[5500,-4500],"R":6500,"apex":10500,"k":2.2,"conf":0.6},{"id":"S6","c":[13300,0],"R":8500,"apex":10100,"eave":7350,"conf":0.6},{"id":"S2","c":[-6000,11000],"apex":12900,"conf":0.6},{"id":"S4","c":[10100,10000],"apex":11000,"conf":0.5}]},"trees":{"layer":"Structure","type":"one branching tree column per shell centre (trunk + branches to the gridshell)","base":"L00","branch_z":5000,"branches":6,"branch_rot":15,"reach":0.6,"lift":0.35,"trunk_d":[600,450],"branch_d":[300,160],"clearance":400,"keepout":[{"id":"west pod roof","outline":{"type":"ref","at":"Glass_L01_W"},"top":"L02"},{"id":"east pod roof","outline":{"type":"ref","at":"Glass_L01_E"},"top":"L02"},{"id":"L01 deck headroom","outline":{"type":"ref","at":"Slab_L01"},"top":6200,"inset":600}],"conf":0.5},"elements":[{"id":"Deck_L00","kind":"slab","layer":"Structure","top":"L00","t":500,"conf":0.5,"outline":{"type":"poly","pts":[[-23000,1200,0],[-18000,-3000,0],[-18000,-11500,1500],[8250,-11500,0],[18800,-2650,0],[19500,-2650,0],[19500,22000,2000],[-23000,22000,2000]]},"holes":[{"type":"circle","c":[-2500,-5000],"r":3600}]},{"id":"Plinth_retaining_wall","kind":"ring","layer":"Structure","t":600,"z":["L-1",-500],"conf":0.4,"outline":{"type":"poly","pts":[[-23000,1200,0],[-18000,-3000,0],[-18000,-11500,1500],[8250,-11500,0],[18800,-2650,0],[19500,-2650,0],[19500,22000,2000],[-23000,22000,2000]]}},{"id":"Bastion_planter","kind":"ring","layer":"Structure","t":600,"z":["L-1",600],"conf":0.5,"outline":{"type":"circle","c":[-12800,-8600],"r":5300}},{"id":"Slab_L01","kind":"slab","layer":"Structure","top":"L01","t":350,"conf":0.6,"note":"rounded edge: wraps the west drum, forward lobe under S1, straight run just behind the S3/S5 trunks, east wing stepped back at S6","outline":{"type":"blob","smooth":1500,"grid":100,"tol":10,"shapes":[{"type":"ref","at":"Glass_L00","grow":1400},{"type":"circle","at":"Core_West_stone_drum","grow":300},{"type":"capsule","a":{"at":"S1","offset":[-2500,3800]},"b":{"at":"S1","offset":[4300,3800]},"r":2800},{"type":"circle","at":"S1","offset":[2500,4800],"r":4300},{"type":"capsule","a":{"at":"S6","offset":[1500,4600]},"b":{"at":"S6","offset":[3300,6500]},"r":2000},{"type":"ref","at":"Glass_L01_E","grow":800}]}},{"id":"Roof_L02_W","kind":"slab","layer":"Roof","top":"L02","t":300,"conf":0.4,"outline":{"type":"ref","at":"Glass_L01_W","grow":700}},{"id":"Roof_L02_E","kind":"slab","layer":"Roof","top":"L02","t":300,"conf":0.3,"outline":{"type":"ref","at":"Glass_L01_E","grow":700}},{"id":"Glass_L00","kind":"glass","layer":"Facade::Glass","z":["L00",3450],"conf":0.5,"outline":{"type":"rrect","x":[-17000,13500],"y":[2000,15000],"r":[3000,500,500,3000]}},{"id":"Glass_L01_W","kind":"glass","layer":"Facade::Glass","z":["L01",6500],"conf":0.45,"note":"west pod: rounded west end over the stone drum, rounded east end at the open deck","outline":{"type":"rrect","x":[-17600,-7100],"y":[1500,15000],"r":[4500,2500,500,3500]}},{"id":"Glass_L01_E","kind":"glass","layer":"Facade::Glass","z":["L01",6500],"conf":0.35,"note":"east pod around the east core","outline":{"type":"rrect","x":[11000,16100],"y":[3600,13500],"r":[2500,2500,500,500]}},{"id":"Railing_L01","kind":"glass","layer":"Facade::Glass","z":["L01",4900],"inset":150,"conf":0.6,"outline":{"type":"ref","at":"Slab_L01"}},{"id":"Core_West_stone_drum","kind":"solid","layer":"Circulation::Core","z":["L00",3450],"conf":0.5,"note":"ground-floor stone drum (stair) under the rounded west end of L01","outline":{"type":"circle","c":[-16000,2000],"r":3000}},{"id":"Core_East_service","kind":"solid","layer":"Circulation::Core","z":["L00","L02"],"conf":0.35,"outline":{"type":"rrect","x":[11500,14700],"y":[4000,8000],"r":[300,300,300,300]}},{"id":"Stair_West_landscape","kind":"stair","layer":"Circulation::Stairs","start":[-22500,-7500],"dir":50,"width":2400,"z":["L-1","L00"],"riser":170,"tread":300,"conf":0.4},{"id":"Pool_floor","kind":"slab","layer":"Structure","top":-1600,"t":300,"conf":0.5,"outline":{"type":"poly","pts":[[10200,-20350,0],[23950,-8800,0],[18800,-2650,0],[5050,-14200,0]]}},{"id":"Pool_walls","kind":"ring","layer":"Structure","t":300,"z":[-1600,0],"conf":0.5,"outline":{"type":"poly","pts":[[10200,-20350,0],[23950,-8800,0],[18800,-2650,0],[5050,-14200,0]]}},{"id":"Pool_glass_edge","kind":"panel","layer":"Facade::Glass","z":[-1900,100],"conf":0.5,"paths":[[[5050,-14200],[10200,-20350],[23950,-8800],[18800,-2650]]]},{"id":"Pool_support_base","kind":"solid","layer":"Structure","z":["L-1",-1900],"conf":0.4,"outline":{"type":"poly","pts":[[9650,-19750,3000],[19600,-11400,0],[15500,-6500,0],[5550,-14850,3000]]}},{"id":"Lounge_pit_floor","kind":"slab","layer":"Structure","top":-450,"t":200,"conf":0.5,"outline":{"type":"circle","c":[-2500,-5000],"r":3600}},{"id":"Lounge_seat_ring","kind":"ring","layer":"Interior elements","t":900,"z":[-450,0],"conf":0.5,"outline":{"type":"circle","c":[-2500,-5000],"r":3500}},{"id":"Lounge_fire_pit","kind":"solid","layer":"Interior elements","z":[-450,-100],"conf":0.5,"outline":{"type":"circle","c":[-2500,-5000],"r":700}},{"id":"Planter_round_E","kind":"ring","layer":"Interior elements","t":300,"z":["L00",600],"conf":0.5,"note":"planter ring around the S5 tree base","outline":{"type":"circle","at":"S5","r":2000}},{"id":"Lounger_1","kind":"box","layer":"Interior elements","c":[9300,-1700],"size":[2000,700,350],"rot":60,"z":"L00","conf":0.4},{"id":"Lounger_2","kind":"box","layer":"Interior elements","c":[10800,-2400],"size":[2000,700,350],"rot":60,"z":"L00","conf":0.4},{"id":"Massing_L00","kind":"mass","layer":"Massing","z":["L00","L01"],"conf":0.5,"outline":{"type":"ref","at":"Glass_L00"}},{"id":"Massing_L01_W","kind":"mass","layer":"Massing","z":["L01","L02"],"conf":0.45,"outline":{"type":"ref","at":"Glass_L01_W"}},{"id":"Massing_L01_E","kind":"mass","layer":"Massing","z":["L01","L02"],"conf":0.35,"outline":{"type":"ref","at":"Glass_L01_E"}}]}''')
 
 # ======== core/mvm_core.py ========
 import math
@@ -493,52 +493,78 @@ def _strip(ring_a, ring_b):
 
 
 # ------------------------------------------------------------------ canopy --
+TILT_MODES = ("none", "global", "radial", "field")
+
+
 def shell_params(cfg):
-    """Resolved shell parameters: module values, per-shell overrides and the rim tilt.
-    Tilt: the rim lies on an inclined plane through the shell centre at the eave height; it is "rise"
-    higher at the rim on the side "u" points to and "rise" lower opposite. Modes: global (one plan
-    direction dir_deg), radial (from "centre": sense "out" = rims high away from it, "in" = rims high
-    toward it), none. "slope" (rise / R) overrides "rise" so every shell tilts by the same angle.
-    A shell's own "tilt" dict overrides the module tilt."""
+    """Resolved shell parameters: module values, per-shell overrides and the rim inclination.
+
+    canopy.module.tilt modes:
+      none    level rims at each shell's eave.
+      field   ONE rim-height field shared by every shell (recommended): e = top on a plateau of radius
+              "plateau" around "centre", falling by "slope" (mm per mm) outward, never below "floor".
+              Neighbouring rims meet flush, so no steps or slots appear between shells.
+      global  each rim on its own plane, high side toward plan direction dir_deg.
+      radial  each rim on its own plane, high side away from ("sense": "out") or toward ("in") "centre".
+    For global/radial, "slope" (rise / R) or "rise" (mm) sets the tilt; a shell's own "tilt" dict
+    overrides the module (shell "rise" beats module "slope"); a shell "mode": "none" is authoritative.
+    In field mode per-shell eaves and tilts are ignored, because they would break the flush rims."""
     mod = cfg["module"]
     tilt = mod.get("tilt", {"mode": "none"})
+    mode0 = tilt.get("mode", "none")
+    if mode0 not in TILT_MODES:
+        raise ValueError("canopy.module.tilt.mode must be one of %s, got %r" % (TILT_MODES, mode0))
     out = []
     for s in cfg["shells"]:
+        R = s.get("R", mod["R"])
+        sh = {"id": s["id"], "c": s["c"], "R": R, "apex": s.get("apex", mod["apex"]),
+              "eave": s.get("eave", mod["eave"]), "p": s.get("p", mod["profile_p"]),
+              "k": s.get("k", mod.get("profile_k", 1.0)), "u": [0.0, 0.0], "rise": 0.0, "field": None}
+        if mode0 == "field":
+            sh["eave"] = mod["eave"]
+            sh["field"] = {"c": tilt["centre"], "plateau": float(tilt.get("plateau", 0.0)),
+                           "top": float(tilt.get("top", mod["eave"])), "slope": float(tilt["slope"]),
+                           "floor": float(tilt.get("floor", -1e9))}
+            out.append(sh)
+            continue
+        st = s.get("tilt", {})
         t = dict(tilt)
-        t.update(s.get("tilt", {}))
-        mode = t.get("mode", "global" if "dir_deg" in t else "none")
-        u, rise = [0.0, 0.0], float(t.get("rise", 0.0))
-        if mode == "global" or "dir_deg" in s.get("tilt", {}):
+        t.update(st)
+        mode = t.get("mode", "none")
+        if mode not in TILT_MODES or mode == "field":
+            raise ValueError("shell %s tilt mode must be none/global/radial, got %r" % (s["id"], mode))
+        if mode == "none":
+            out.append(sh)
+            continue
+        if "rise" in st and "slope" not in st:
+            rise = float(st["rise"])
+        elif "slope" in t:
+            rise = float(t["slope"]) * R
+        else:
+            rise = float(t.get("rise", 0.0))
+        if mode == "global":
             a = math.radians(t.get("dir_deg", 270.0))
             u = [math.cos(a), math.sin(a)]
-        elif mode == "radial":
+        else:
+            sense = t.get("sense", "out")
+            if sense not in ("in", "out"):
+                raise ValueError("shell %s tilt sense must be 'in' or 'out', got %r" % (s["id"], sense))
             c0 = t.get("centre", [0.0, 0.0])
             d = [s["c"][0] - c0[0], s["c"][1] - c0[1]]
             n = math.hypot(d[0], d[1])
-            if n > 1e-6:
-                sign = -1.0 if t.get("sense", "out") == "in" else 1.0
-                u = [sign * d[0] / n, sign * d[1] / n]
-            if t.get("blend_dir_deg") is not None:
-                a = math.radians(t["blend_dir_deg"])
-                w = float(t.get("blend", 0.5))
-                v = [(1 - w) * u[0] + w * math.cos(a), (1 - w) * u[1] + w * math.sin(a)]
-                n = math.hypot(v[0], v[1]) or 1.0
-                u = [v[0] / n, v[1] / n]
-        else:
-            rise = 0.0
-        if mode != "none" and "slope" in t:
-            rise = float(t["slope"]) * s.get("R", mod["R"])
-        out.append({
-            "id": s["id"], "c": s["c"],
-            "R": s.get("R", mod["R"]), "apex": s.get("apex", mod["apex"]),
-            "eave": s.get("eave", mod["eave"]), "p": s.get("p", mod["profile_p"]),
-            "k": s.get("k", mod.get("profile_k", 1.0)), "u": u, "rise": rise,
-        })
+            sign = -1.0 if sense == "in" else 1.0
+            u = [sign * d[0] / n, sign * d[1] / n] if n > 1e-6 else [0.0, 0.0]
+        sh["u"], sh["rise"] = u, rise
+        out.append(sh)
     return out
 
 
 def eave_at(sh, x, y):
-    """Rim height of a shell above plan point (x, y): its inclined rim plane."""
+    """Rim height of a shell above plan point (x, y): the shared field, or the shell's rim plane."""
+    f = sh.get("field")
+    if f:
+        d = math.hypot(x - f["c"][0], y - f["c"][1])
+        return max(f["floor"], f["top"] - max(0.0, d - f["plateau"]) * f["slope"])
     return sh["eave"] + sh["rise"] * ((x - sh["c"][0]) * sh["u"][0] + (y - sh["c"][1]) * sh["u"][1]) / sh["R"]
 
 
@@ -612,6 +638,30 @@ class Canopy(object):
         y = s["c"][1] + r * math.sin(th)
         z = self.dome(i, x, y)
         return [x, y, z if z is not None else eave_at(s, x, y)]
+
+    def others(self, i, x, y):
+        """Upper envelope of every shell except i at (x, y); None where no other shell covers it."""
+        zs = [z for z in (self.dome(j, x, y) for j in range(len(self.shells)) if j != i) if z is not None]
+        return max(zs) if zs else None
+
+    def flush(self, i, pts, tol=50.0):
+        """True when the rest of the roof meets shell i's boundary run at the same height (a real valley)."""
+        for p in pts:
+            z = self.others(i, p[0], p[1])
+            if z is None or abs(z - p[2]) > tol:
+                return False
+        return True
+
+    def rim_steps(self, tol=50.0):
+        """Open steps: points on a shell's free edge that hang above the rest of the roof."""
+        worst, count = 0.0, 0
+        for i in range(len(self.shells)):
+            for nb, pts in self.boundary_runs(i):
+                for p in pts:
+                    z = self.others(i, p[0], p[1])
+                    if z is not None and p[2] - z > tol:
+                        worst, count = max(worst, p[2] - z), count + 1
+        return worst, count
 
     def boundary_runs(self, i):
         """Split the cell boundary into runs: (-1, pts) eave arcs, (j, pts) valley shared with shell j."""
@@ -745,9 +795,12 @@ def build(spec):
         v, f = tube_mesh(segs, mod.get("member_d", 140) / 2.0)
         add("mesh", "Roof", sid + "_lattice", v=v, f=f)
         for nb, pts in can.boundary_runs(i):
-            if nb == -1 and len(pts) > 1:
+            if len(pts) < 2:
+                continue
+            flush = nb >= 0 and can.flush(i, pts)
+            if not flush:
                 add("pipe", "Roof", sid + "_eave_beam", pts=pts, r=[mod.get("edge_d", 260) / 2.0] * 2)
-            elif nb > i and len(pts) > 1:
+            elif nb > i:
                 v, f = _ribbon(pts, mod.get("gutter_w", 900), mod.get("gutter_depth", -150))
                 add("mesh", "Roof", "gutter_" + sid + "_" + can.shells[nb]["id"], v=v, f=f)
 
@@ -901,6 +954,8 @@ def clearance_report(spec, step=500.0):
                 y += step
             x += step
         out.append("canopy over %s min %d mm (%d pts open sky)" % (k.get("id", "keepout"), worst if worst is not None else -1, uncovered))
+    step, n = can.rim_steps()
+    out.append("rim steps > 50 mm: %d (max %d mm)" % (n, step))
     return "; ".join(out)
 
 
@@ -913,8 +968,9 @@ def dome_report(spec):
         b = can.bounds[i]
         n = len(b)
         area = sum(0.5 * b[k][0] ** 2 * (2 * math.pi / n) for k in range(n))
-        valley = [p[2] for nb, pts in can.boundary_runs(i) if nb >= 0 for p in pts]
-        top = max(valley) if valley else s["eave"]
+        runs = can.boundary_runs(i)
+        valley = [p[2] for nb, pts in runs if nb >= 0 for p in pts]
+        top = max(valley) if valley else max(p[2] for nb, pts in runs for p in pts)
         rows.append({"id": s["id"], "cell_m2": round(area / 1e6, 1), "prominence_mm": int(round(s["apex"] - top))})
     return rows
 
@@ -1013,7 +1069,8 @@ def color(rgb):
 #   spec_path  str      path to pavilion_spec.json (blank = spec embedded below)
 #   centers    Point3d  List access. Canopy shell centres; replaces S1.. in order, extra points add shells
 #   R, eave, apex, profile_k            canopy module (mm / exponent)
-#   tilt_rise, tilt_dir                 inclined rims: rise (mm) at the high side, plan direction (deg, 270 = lake)
+#   tilt_slope, tilt_top, tilt_floor    inclined rims (shared rim field): fall per mm outward, plateau height, lowest rim (mm)
+#   tilt_centre  Point3d                 heart of the rim field (model units); tilt_slope 0 = level rims
 #   rings, member_len                    gridshell density
 #   branches, branch_z, reach            tree columns
 #   L01, L02                             level elevations (mm)
@@ -1044,14 +1101,20 @@ def _spec():
             lv["elev"] = globals()[lv["name"]]
     if _given("skin"):
         mod["skin"] = bool(skin)
-    if _given("tilt_rise") or _given("tilt_dir"):
-        t = dict(mod.get("tilt", {"mode": "global"}))
-        if _given("tilt_rise"):
-            t["rise"] = float(tilt_rise)
-        if _given("tilt_dir"):
-            t["dir_deg"] = float(tilt_dir)
-            if t.get("mode") not in ("global", "radial"):
-                t["mode"] = "global"
+    keys = ("tilt_slope", "tilt_top", "tilt_floor", "tilt_centre")
+    if any(_given(n) for n in keys):
+        t = dict(mod.get("tilt", {}))
+        if t.get("mode") != "field":
+            t = {"mode": "field", "centre": [0.0, 0.0], "plateau": 0.0, "top": mod["eave"], "slope": 0.0}
+        if _given("tilt_slope"):
+            t["slope"] = float(tilt_slope)
+        if _given("tilt_top"):
+            t["top"] = float(tilt_top)
+        if _given("tilt_floor"):
+            t["floor"] = float(tilt_floor)
+        if _given("tilt_centre"):
+            k = unit_scale(Rhino.RhinoDoc.ActiveDoc)
+            t["centre"] = [tilt_centre.X / k, tilt_centre.Y / k]
         mod["tilt"] = t
     if _given("centers") and len(centers):
         k = unit_scale(Rhino.RhinoDoc.ActiveDoc)

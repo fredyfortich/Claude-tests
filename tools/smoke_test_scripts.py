@@ -173,6 +173,24 @@ def main():
     longest = max(((pts[i][0] - pts[i - 1][0]) ** 2 + (pts[i][1] - pts[i - 1][1]) ** 2) ** 0.5 for i in range(len(pts)))
     assert longest <= slab.get("max_seg", 1000) + 1, longest
     print("blob densify OK: longest slab segment %.0f mm over %d pts" % (longest, len(pts)))
+    # rims: the shared field keeps neighbouring rims flush, and the GH tilt inputs really change the canopy
+    assert "rim steps > 50 mm: 0 " in report, report
+    base_shells = mvm_core.shell_params(spec["canopy"])
+    doc, g, _ = run("grasshopper/mvm_pavilion_gh.py", {"tilt_slope": 0.0, "tilt_top": 7900})
+    level = mvm_core.shell_params(g["_spec_now"]["canopy"])
+    z0 = [mvm_core.eave_at(sh, sh["c"][0] + sh["R"], sh["c"][1]) for sh in base_shells]
+    z1 = [mvm_core.eave_at(sh, sh["c"][0] + sh["R"], sh["c"][1]) for sh in level]
+    assert z0 != z1 and all(abs(z - 7900) < 1e-6 for z in z1), (z0, z1)
+    print("tilt inputs OK: level rims at 7900 when tilt_slope = 0")
+    for bad in ({"mode": "radial", "centre": [0, 0], "sense": "inward", "slope": 0.06}, {"mode": "tilted"}):
+        bad_spec = json.loads(json.dumps(spec))
+        bad_spec["canopy"]["module"]["tilt"] = bad
+        try:
+            mvm_core.shell_params(bad_spec["canopy"])
+        except ValueError:
+            continue
+        raise AssertionError("invalid tilt accepted: %r" % (bad,))
+    print("tilt validation OK")
 
 
 if __name__ == "__main__":
