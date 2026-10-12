@@ -504,7 +504,9 @@ def shell_params(cfg):
     """Resolved shell parameters: module values, per-shell overrides and the rim tilt.
     Tilt: the rim lies on an inclined plane through the shell centre at the eave height; it is "rise"
     higher at the rim on the side "u" points to and "rise" lower opposite. Modes: global (one plan
-    direction dir_deg), radial (away from "centre"), none. A shell's own "tilt" dict overrides it."""
+    direction dir_deg), radial (from "centre": sense "out" = rims high away from it, "in" = rims high
+    toward it), none. "slope" (rise / R) overrides "rise" so every shell tilts by the same angle.
+    A shell's own "tilt" dict overrides the module tilt."""
     mod = cfg["module"]
     tilt = mod.get("tilt", {"mode": "none"})
     out = []
@@ -521,7 +523,8 @@ def shell_params(cfg):
             d = [s["c"][0] - c0[0], s["c"][1] - c0[1]]
             n = math.hypot(d[0], d[1])
             if n > 1e-6:
-                u = [d[0] / n, d[1] / n]
+                sign = -1.0 if t.get("sense", "out") == "in" else 1.0
+                u = [sign * d[0] / n, sign * d[1] / n]
             if t.get("blend_dir_deg") is not None:
                 a = math.radians(t["blend_dir_deg"])
                 w = float(t.get("blend", 0.5))
@@ -530,6 +533,8 @@ def shell_params(cfg):
                 u = [v[0] / n, v[1] / n]
         else:
             rise = 0.0
+        if mode != "none" and "slope" in t:
+            rise = float(t["slope"]) * s.get("R", mod["R"])
         out.append({
             "id": s["id"], "c": s["c"],
             "R": s.get("R", mod["R"]), "apex": s.get("apex", mod["apex"]),
