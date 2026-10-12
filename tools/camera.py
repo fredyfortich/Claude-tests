@@ -10,8 +10,11 @@ sys.path.insert(0, os.path.join(ROOT, "core"))
 import mvm_core  # noqa: E402
 
 SPEC = os.path.join(ROOT, "spec", "pavilion_spec.json")
-IMAGE = os.path.join(ROOT, "spec", "source_image.webp")
 OUT = os.path.join(ROOT, "out")
+
+
+def view_image(view):
+    return os.path.join(ROOT, view["image"])
 
 
 def load_spec(path=SPEC):

@@ -154,7 +154,8 @@ def _centre(o, ctx):
 
 def outline(o, ctx=None):
     """Outline dict -> closed CCW [[x, y], ..].
-    Types: rrect, circle (c or at), poly (vertices may carry a fillet radius), blob (smooth union of shapes)."""
+    Types: rrect, circle (c or at), poly (vertices may carry a fillet radius), blob (smooth union of
+    shapes; blob members may also be capsules), ref (another element's outline, optionally grown)."""
     t = o["type"]
     if t == "circle":
         return circle_pts(_centre(o, ctx), _radius(o, ctx), o.get("seg", 72))
@@ -168,10 +169,24 @@ def outline(o, ctx=None):
     if t == "poly":
         return ensure_ccw(fillet_poly(o["pts"]))
     if t == "blob":
-        return _blob(o, ctx)
+        if ctx is None:
+            return _blob(o, ctx)
+        cache = ctx.setdefault("_blob_cache", {})
+        key = repr(o)
+        if key not in cache:
+            cache[key] = _blob(o, ctx)
+        return [list(p) for p in cache[key]]
     if t == "ref":
-        return outline(_ref_outline(o["at"], ctx), ctx)
+        pts = outline(_ref_outline(o["at"], ctx), ctx)
+        return offset_closed(pts, -o["grow"]) if o.get("grow") else pts
     raise ValueError("unknown outline type: " + str(t))
+
+
+def is_smooth(o, ctx):
+    """True when an outline resolves to a blob, so adapters can fit a periodic curve."""
+    while o["type"] == "ref":
+        o = _ref_outline(o["at"], ctx)
+    return o["type"] == "blob"
 
 
 def _radius(o, ctx):
@@ -207,6 +222,16 @@ def _sdf(o, ctx):
         ref = dict(_ref_outline(o["at"], ctx))
         ref["grow"] = ref.get("grow", 0.0) + grow
         return _sdf(ref, ctx)
+    if t == "capsule":
+        a, b = _centre(o["a"], ctx), _centre(o["b"], ctx)
+        r = o["r"] + grow
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        L2 = dx * dx + dy * dy or 1e-9
+
+        def cap(x, y):
+            t = max(0.0, min(1.0, ((x - a[0]) * dx + (y - a[1]) * dy) / L2))
+            return math.hypot(x - a[0] - t * dx, y - a[1] - t * dy) - r
+        return cap
     pts = outline(o, ctx)
 
     def g(x, y):
@@ -233,6 +258,10 @@ def _bbox(o, ctx):
         b = _bbox(_ref_outline(o["at"], ctx), ctx)
         g = o.get("grow", 0.0)
         return [b[0] - g, b[1] - g, b[2] + g, b[3] + g]
+    if t == "capsule":
+        a, b = _centre(o["a"], ctx), _centre(o["b"], ctx)
+        r = o["r"] + o.get("grow", 0.0)
+        return [min(a[0], b[0]) - r, min(a[1], b[1]) - r, max(a[0], b[0]) + r, max(a[1], b[1]) + r]
     pts = outline(o, ctx)
     g = o.get("grow", 0.0)
     return [min(p[0] for p in pts) - g, min(p[1] for p in pts) - g, max(p[0] for p in pts) + g, max(p[1] for p in pts) + g]
@@ -670,7 +699,8 @@ def build(spec):
     tcfg = spec["trees"]
     keepout = []
     for k in tcfg.get("keepout", []):
-        keepout.append((offset_closed(outline(k["outline"], ctx), -tcfg.get("clearance", 400)), z_of(k["top"]) + tcfg.get("clearance", 400)))
+        off = k.get("inset", -tcfg.get("clearance", 400))
+        keepout.append((offset_closed(outline(k["outline"], ctx), off), z_of(k["top"]) + tcfg.get("clearance", 400)))
     def clashes(br):
         for p in br:
             for poly, ztop in keepout:
@@ -720,19 +750,19 @@ def build(spec):
                 z0, z1 = z_of(e["z"][0]), z_of(e["z"][1])
             holes = [lift(outline(h, ctx), z0) for h in e.get("holes", [])]
             add("extrude", layer, name, pts=lift(outline(e["outline"], ctx), z0), holes=holes,
-                vec=[0, 0, z1 - z0], cap=True, smooth=e["outline"]["type"] == "blob")
+                vec=[0, 0, z1 - z0], cap=True, smooth=is_smooth(e["outline"], ctx))
         elif k == "ring":
             z0, z1 = z_of(e["z"][0]), z_of(e["z"][1])
             out = outline(e["outline"], ctx)
             add("extrude", layer, name, pts=lift(out, z0), holes=[lift(offset_closed(out, e["t"]), z0)],
-                vec=[0, 0, z1 - z0], cap=True, smooth=e["outline"]["type"] == "blob")
+                vec=[0, 0, z1 - z0], cap=True, smooth=is_smooth(e["outline"], ctx))
         elif k == "glass":
             z0, z1 = z_of(e["z"][0]), z_of(e["z"][1])
             pts = outline(e["outline"], ctx)
             if e.get("inset"):
                 pts = offset_closed(pts, e["inset"])
             add("extrude", layer, name, pts=lift(pts, z0), holes=[], vec=[0, 0, z1 - z0], cap=False,
-                smooth=e["outline"]["type"] == "blob")
+                smooth=is_smooth(e["outline"], ctx))
         elif k == "panel":
             z0, z1 = z_of(e["z"][0]), z_of(e["z"][1])
             for n, path in enumerate(e["paths"]):
@@ -793,9 +823,10 @@ def clearance_report(spec, step=500.0):
     """Lowest canopy point above each tree keepout (the enclosure roof), sampled on a grid."""
     lv = dict((l["name"], l["elev"]) for l in spec["levels"])
     can = Canopy(spec["canopy"])
+    ctx = make_ctx(spec)
     out = []
     for k in spec["trees"].get("keepout", []):
-        poly = outline(k["outline"], make_ctx(spec))
+        poly = outline(k["outline"], ctx)
         top = lv[k["top"]] if isinstance(k["top"], str) else float(k["top"])
         xs = [p[0] for p in poly]
         ys = [p[1] for p in poly]
@@ -812,7 +843,7 @@ def clearance_report(spec, step=500.0):
                         uncovered += 1
                 y += step
             x += step
-        out.append("canopy clearance over roof min %d mm (%d grid pts open sky)" % (worst if worst is not None else -1, uncovered))
+        out.append("canopy over %s min %d mm (%d pts open sky)" % (k.get("id", "keepout"), worst if worst is not None else -1, uncovered))
     return "; ".join(out)
 
 

@@ -9,7 +9,7 @@ import os
 import numpy as np
 from PIL import Image
 
-from camera import IMAGE, OUT, Camera, load_spec, mvm_core
+from camera import OUT, Camera, load_spec, mvm_core, view_image
 
 STYLE = {  # rgb, alpha
     "Roof": ((248, 238, 218), 1.0), "skin": ((255, 244, 222), 0.22), "gutter": ((255, 255, 255), 1.0),
@@ -188,17 +188,17 @@ def render(cam, prims, spec=None, bg=(18, 18, 20), ss=2):
 def main():
     spec = load_spec()
     prims = mvm_core.build(spec)
-    cam = Camera.from_meta(spec["meta"]["camera"])
-    src = Image.open(IMAGE).convert("RGB")
-    matched = render(cam, prims, spec)
-    comp = Image.new("RGB", (src.width, src.height * 2 + 8), (0, 0, 0))
-    comp.paste(src, (0, 0))
-    comp.paste(matched, (0, src.height + 8))
     os.makedirs(OUT, exist_ok=True)
-    comp.save(os.path.join(OUT, "stage4_compare.png"))
+    for view in spec["meta"]["views"]:
+        src = Image.open(view_image(view)).convert("RGB")
+        matched = render(Camera.from_meta(view["camera"]), prims, spec)
+        comp = Image.new("RGB", (src.width, src.height * 2 + 8), (0, 0, 0))
+        comp.paste(src, (0, 0))
+        comp.paste(matched, (0, src.height + 8))
+        comp.save(os.path.join(OUT, "stage4_compare_%s.png" % view["id"]))
     aerial = look_at([42000, -50000, 30000], [0, 3000, 2000], 1700, (1600, 1000))
     render(aerial, prims, spec).save(os.path.join(OUT, "render_aerial.png"))
-    print("wrote stage4_compare.png, render_aerial.png")
+    print("wrote stage4_compare_<view>.png, render_aerial.png")
 
 
 if __name__ == "__main__":

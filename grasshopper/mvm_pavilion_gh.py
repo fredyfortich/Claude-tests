@@ -5,7 +5,7 @@
 # Do not edit: change the sources and regenerate.
 import json
 
-SPEC = json.loads(r'''{"meta":{"project":"MVM Canopy Pavilion","units":"mm","source":"spec/source_image.webp (1376x768 px, AI-generated photo of a physical model, single perspective view)","view":"perspective","origin":"S3 tree-column base at L00 (terrace / ground floor finish)","origin_px":[700,377],"axes":"X along the main facade (image left to right), Y away from the camera, Z up","mm_per_px":41,"mm_per_px_note":"at the facade plane (y = 0), from the fitted camera (f ~ 2020 px, ~83 m away); varies ~10 % front to back","snap":100,"scale_ref":"ground storey L00 to L01 = 3800 mm (92 px at 41 mm/px; matches lounge sofas and the conversation-pit ring)","scale_check":[{"ref":"sun lounger length 2000 mm","px":50,"implies_mm_per_px":40,"status":"agrees"},{"ref":"balcony railing 1100 mm","px":16,"implies_mm_per_px":69,"status":"CONFLICT 1.7x: railing reads 0.65 m at 41 mm/px; spec uses a code-compliant 1100 mm railing"}],"camera":{"C":[-10215,-82792,15134],"yaw_deg":6.922,"pitch_deg":10.097,"roll_deg":0.0,"f_px":2021.4,"size":[1376,768],"rms_px":12.3,"note":"fitted by tools/fit_camera.py; near-orthographic lens -> depth (Y) weakly constrained"},"flags":["PERSPECTIVE: single AI-rendered view; base-plate and pool edges diverge instead of converging, so no exact vanishing-point calibration. Camera fitted to 11 anchors (tools/fit_camera.py). Plan depths (Y) are assumptions, conf <= 0.5.","SCALE: railing vs storey/lounger references disagree by 1.7x; storey + lounger chosen (human to confirm).","DESIGN DELTA: canopy module raised +700 mm over the pure image fit (eave 7600, apex 11400) so eave lips clear the L02 roof by >= 800 mm; anchor rms 7.5 -> 12.3 px.","CANOPY PLAN: 6 domes read as a staggered cluster (front S1 S3 S5 S6, back S2 S4). S2 is the tallest 'hero' dome; S5 is a smaller, lower dome nestled in the S3/S6 valley; S4 trunk is hidden. Positions are editable points in Grasshopper.","TREES: crowns adapt to the enclosure (a clashing branch shortens its reach; S2/S4 inside the enclosure branch above the roof).","SITE ORIENTATION: base plate and pool read rotated about 40 deg to the facade (building faces the promontory corner). Pool modelled rotated 40 deg; plate kept as context only.","UNSEEN: rear facade, building depth (assumed 13 m), interior layout, roof slab under the canopy (assumed L02 = 6800, upper floor 3.0 m floor-to-floor).","NO GEOMETRY (not in layer standard): vegetation and trees, rocks and boulders, water bodies (lagoon and pool water), acrylic base plate, loose furniture other than loungers and the lounge ring, lighting.","NOT MODELLED v1: mullions, discrete canopy infill panels (skin mesh stands in for ETFE/glass), planter openings in the deck, stair balustrades. Facade::Opaque is empty in v1."],"context":{"site_plate":{"outline_xy":[[-28600,-4900],[-6700,-42900],[23400,-19200],[1500,18800]],"top":-4200,"conf":0.3,"note":"acrylic plate / lagoon, no geometry"}}},"levels":[{"name":"L-1","elev":-3600,"note":"lower landscape shelf / rock edge"},{"name":"L00","elev":0,"note":"terrace and ground floor"},{"name":"L01","elev":3800,"note":"upper floor and wrap-around balcony"},{"name":"L02","elev":6800,"note":"roof of the enclosure, under the canopy"}],"grids":[{"id":"A","start":[-24000,0],"end":[22000,0]},{"id":"B","start":[-24000,8000],"end":[22000,8000]},{"id":"1","start":[-14000,-12000],"end":[-14000,18000]},{"id":"2","start":[-7000,-12000],"end":[-7000,18000]},{"id":"3","start":[0,-12000],"end":[0,18000]},{"id":"4","start":[7500,-12000],"end":[7500,18000]},{"id":"5","start":[14000,-12000],"end":[14000,18000]}],"canopy":{"layer":"Roof","type":"umbrella gridshell cluster: roof = upper envelope of domes, valleys carry gutters","module":{"R":8000,"eave":7600,"apex":11400,"profile_p":2.0,"profile_k":1.7,"rings":7,"member_len":1400,"member_d":120,"edge_d":250,"gutter_w":900,"gutter_depth":-150,"boundary_samples":144,"skin":true},"shells":[{"id":"S1","c":[-14000,0],"conf":0.6},{"id":"S3","c":[0,0],"conf":0.7},{"id":"S5","c":[7500,-500],"R":7000,"apex":9700,"conf":0.4},{"id":"S6","c":[13000,-3000],"apex":10400,"conf":0.6,"eave":7200},{"id":"S2","c":[-6000,11000],"conf":0.5,"apex":12900},{"id":"S4","c":[7500,5500],"apex":10900,"conf":0.3}]},"trees":{"layer":"Structure","type":"one branching tree column per shell centre (trunk + branches to the gridshell)","base":"L00","branch_z":5000,"branches":6,"branch_rot":15,"reach":0.6,"lift":0.35,"trunk_d":[600,450],"branch_d":[300,160],"clearance":400,"keepout":[{"outline":{"type":"rrect","x":[-18000,14000],"y":[1500,15000],"r":[3500,500,500,3500]},"top":"L02"}],"conf":0.5},"elements":[{"id":"Deck_L00","kind":"slab","layer":"Structure","top":"L00","t":500,"conf":0.5,"outline":{"type":"poly","pts":[[-23000,1200,0],[-18000,-3000,0],[-18000,-11500,1500],[8250,-11500,0],[18800,-2650,0],[19500,-2650,0],[19500,22000,2000],[-23000,22000,2000]]},"holes":[{"type":"circle","c":[-2500,-5000],"r":3600}]},{"id":"Plinth_retaining_wall","kind":"ring","layer":"Structure","t":600,"z":["L-1",-500],"conf":0.4,"outline":{"type":"poly","pts":[[-23000,1200,0],[-18000,-3000,0],[-18000,-11500,1500],[8250,-11500,0],[18800,-2650,0],[19500,-2650,0],[19500,22000,2000],[-23000,22000,2000]]}},{"id":"Bastion_planter","kind":"ring","layer":"Structure","t":600,"z":["L-1",600],"conf":0.5,"outline":{"type":"circle","c":[-12800,-8600],"r":5300}},{"id":"Slab_L01","kind":"slab","layer":"Structure","top":"L01","t":350,"conf":0.6,"outline":{"type":"rrect","x":[-21000,16500],"y":[-2000,16500],"r":[6000,1500,1500,6000]}},{"id":"Slab_L02_roof","kind":"slab","layer":"Roof","top":"L02","t":300,"conf":0.3,"outline":{"type":"rrect","x":[-18600,14600],"y":[900,15600],"r":[4100,1100,1100,4100]}},{"id":"Glass_L00","kind":"glass","layer":"Facade::Glass","z":["L00",3450],"conf":0.5,"outline":{"type":"rrect","x":[-17000,13500],"y":[2000,15000],"r":[3000,500,500,3000]}},{"id":"Glass_L01","kind":"glass","layer":"Facade::Glass","z":["L01",6500],"conf":0.5,"outline":{"type":"rrect","x":[-18000,14000],"y":[1500,15000],"r":[3500,500,500,3500]}},{"id":"Railing_L01","kind":"glass","layer":"Facade::Glass","z":["L01",4900],"inset":150,"conf":0.5,"outline":{"type":"rrect","x":[-21000,16500],"y":[-2000,16500],"r":[6000,1500,1500,6000]}},{"id":"Core_West_stone_drum","kind":"solid","layer":"Circulation::Core","z":["L00","L02"],"conf":0.5,"outline":{"type":"circle","c":[-18000,3000],"r":2800}},{"id":"Core_East_service","kind":"solid","layer":"Circulation::Core","z":["L00","L02"],"conf":0.3,"outline":{"type":"rrect","x":[11500,15500],"y":[6000,11000],"r":[300,300,300,300]}},{"id":"Stair_West_landscape","kind":"stair","layer":"Circulation::Stairs","start":[-22500,-7500],"dir":50,"width":2400,"z":["L-1","L00"],"riser":170,"tread":300,"conf":0.4},{"id":"Pool_floor","kind":"slab","layer":"Structure","top":-1600,"t":300,"conf":0.5,"outline":{"type":"poly","pts":[[10200,-20350,0],[23950,-8800,0],[18800,-2650,0],[5050,-14200,0]]}},{"id":"Pool_walls","kind":"ring","layer":"Structure","t":300,"z":[-1600,0],"conf":0.5,"outline":{"type":"poly","pts":[[10200,-20350,0],[23950,-8800,0],[18800,-2650,0],[5050,-14200,0]]}},{"id":"Pool_glass_edge","kind":"panel","layer":"Facade::Glass","z":[-1900,100],"conf":0.5,"paths":[[[5050,-14200],[10200,-20350],[23950,-8800],[18800,-2650]]]},{"id":"Pool_support_base","kind":"solid","layer":"Structure","z":["L-1",-1900],"conf":0.4,"outline":{"type":"poly","pts":[[9650,-19750,3000],[19600,-11400,0],[15500,-6500,0],[5550,-14850,3000]]}},{"id":"Lounge_pit_floor","kind":"slab","layer":"Structure","top":-450,"t":200,"conf":0.5,"outline":{"type":"circle","c":[-2500,-5000],"r":3600}},{"id":"Lounge_seat_ring","kind":"ring","layer":"Interior elements","t":900,"z":[-450,0],"conf":0.5,"outline":{"type":"circle","c":[-2500,-5000],"r":3500}},{"id":"Lounge_fire_pit","kind":"solid","layer":"Interior elements","z":[-450,-100],"conf":0.5,"outline":{"type":"circle","c":[-2500,-5000],"r":700}},{"id":"Planter_round_E","kind":"ring","layer":"Interior elements","t":300,"z":["L00",600],"conf":0.5,"outline":{"type":"circle","c":[5500,-4500],"r":2000}},{"id":"Lounger_1","kind":"box","layer":"Interior elements","c":[10500,-500],"size":[2000,700,350],"rot":60,"z":"L00","conf":0.4},{"id":"Lounger_2","kind":"box","layer":"Interior elements","c":[12200,-1200],"size":[2000,700,350],"rot":60,"z":"L00","conf":0.4},{"id":"Massing_enclosure","kind":"mass","layer":"Massing","z":["L00","L02"],"conf":0.5,"outline":{"type":"rrect","x":[-17000,13500],"y":[2000,15000],"r":[3000,500,500,3000]}}]}''')
+SPEC = json.loads(r'''{"meta":{"project":"MVM Canopy Pavilion","units":"mm","source":"two AI images, 1376x768 each: spec/source_image.webp (white physical model) and spec/reference_image_2.webp (photoreal, on the lake)","view":"perspective","origin":"S3 tree-column base at L00 (terrace / ground floor finish)","origin_px":[700,377],"axes":"X along the main facade (image left to right), Y away from the camera, Z up","mm_per_px":41,"mm_per_px_note":"image 1 at the facade plane (y = 0), from its fitted camera (f ~ 2000 px, ~83 m away); varies ~10 % front to back","snap":100,"scale_ref":"ground storey L00 to L01 = 3800 mm (92 px at 41 mm/px; matches lounge sofas and the conversation-pit ring)","scale_check":[{"ref":"sun lounger length 2000 mm","px":50,"implies_mm_per_px":40,"status":"agrees"},{"ref":"balcony railing 1100 mm","px":16,"implies_mm_per_px":69,"status":"CONFLICT 1.7x: railing reads 0.65 m at 41 mm/px; spec uses a code-compliant 1100 mm railing"}],"flags":["PERSPECTIVE: two AI-rendered views, no orthographic drawings. Each view has its own fitted camera (meta.views, tools/fit_camera.py). The two images are not mutually consistent to better than ~15 px; plan depths (Y) remain the weakest dimension.","SCALE: railing vs storey/lounger references disagree by 1.7x in image 1; storey + lounger chosen (human to confirm).","DESIGN DELTA: canopy module raised +700 mm over the pure image fit (eave 7600, apex 11400) so eave lips clear the pod roofs by >= 800 mm. A reader measured the dome rise at ~3.1-3.3 m in the images vs 3.8 m modelled: lower apexes slightly if the building should read taller.","CANOPY: six distinct domes, verified with dome_report (every prominence >= 1.0 m). Front S1 S3 S6, small low S5 nestled between S3 and S6 (its tree rises out of the round planter), back S2 (tallest) and S4 (hidden from image 2, as in the photo). Positions are editable points in Grasshopper.","L01: rounded slab edge (blob) referenced to the drum, S1 and S6 - it follows when those move. Trunks stand free just outside the edge, as in both images. Upper floor = rounded west pod + east pod with an open, canopy-covered deck between (both images).","TREES: crowns adapt to the pods and to 2.4 m headroom over the open L01 deck (a clashing branch shortens its reach; S2/S4 branch above the pod roofs/deck headroom).","SITE ORIENTATION: base plate and pool read rotated about 40 deg to the facade (building faces the promontory corner). Pool modelled rotated 40 deg; plate kept as context only.","UNSEEN: rear facade, building depth (assumed 13 m), interior layout, pod roofs at L02 = 6800 (upper floor 3.0 m floor-to-floor).","NO GEOMETRY (not in layer standard): vegetation and trees, rocks and boulders, water bodies (lagoon and pool water), acrylic base plate, loose furniture other than loungers and the lounge ring, lighting.","NOT MODELLED v1: mullions, discrete canopy infill panels (skin mesh stands in for ETFE/glass), bundled multi-stem trunks, terrace steps/veranda, planter openings in the deck, stair balustrades. Facade::Opaque is empty in v1."],"context":{"site_plate":{"outline_xy":[[-28600,-4900],[-6700,-42900],[23400,-19200],[1500,18800]],"top":-4200,"conf":0.3,"note":"acrylic plate / lagoon, no geometry"}}},"levels":[{"name":"L-1","elev":-3600,"note":"lower landscape shelf / rock edge"},{"name":"L00","elev":0,"note":"terrace and ground floor"},{"name":"L01","elev":3800,"note":"upper floor and wrap-around balcony"},{"name":"L02","elev":6800,"note":"roof of the enclosure, under the canopy"}],"grids":[{"id":"A","start":[-24000,0],"end":[22000,0]},{"id":"B","start":[-24000,8000],"end":[22000,8000]},{"id":"1","start":[-14000,-12000],"end":[-14000,18000]},{"id":"2","start":[-7000,-12000],"end":[-7000,18000]},{"id":"3","start":[0,-12000],"end":[0,18000]},{"id":"4","start":[7500,-12000],"end":[7500,18000]},{"id":"5","start":[14000,-12000],"end":[14000,18000]}],"canopy":{"layer":"Roof","type":"umbrella gridshell cluster: roof = upper envelope of domes, valleys carry gutters","module":{"R":8000,"eave":7600,"apex":11400,"profile_p":2.0,"profile_k":1.7,"rings":7,"member_len":1400,"member_d":120,"edge_d":250,"gutter_w":900,"gutter_depth":-150,"boundary_samples":144,"skin":true},"shells":[{"id":"S1","c":[-13500,-2000],"conf":0.6},{"id":"S3","c":[0,0],"R":7000,"conf":0.7},{"id":"S5","c":[6000,-3000],"R":5500,"apex":10100,"k":3.0,"conf":0.6},{"id":"S6","c":[13300,0],"R":8500,"apex":10100,"eave":7200,"conf":0.6},{"id":"S2","c":[-6000,11000],"apex":12900,"conf":0.6},{"id":"S4","c":[10100,10000],"apex":11000,"conf":0.5}]},"trees":{"layer":"Structure","type":"one branching tree column per shell centre (trunk + branches to the gridshell)","base":"L00","branch_z":5000,"branches":6,"branch_rot":15,"reach":0.6,"lift":0.35,"trunk_d":[600,450],"branch_d":[300,160],"clearance":400,"keepout":[{"id":"west pod roof","outline":{"type":"ref","at":"Glass_L01_W"},"top":"L02"},{"id":"east pod roof","outline":{"type":"ref","at":"Glass_L01_E"},"top":"L02"},{"id":"L01 deck headroom","outline":{"type":"ref","at":"Slab_L01"},"top":6200,"inset":600}],"conf":0.5},"elements":[{"id":"Deck_L00","kind":"slab","layer":"Structure","top":"L00","t":500,"conf":0.5,"outline":{"type":"poly","pts":[[-23000,1200,0],[-18000,-3000,0],[-18000,-11500,1500],[8250,-11500,0],[18800,-2650,0],[19500,-2650,0],[19500,22000,2000],[-23000,22000,2000]]},"holes":[{"type":"circle","c":[-2500,-5000],"r":3600}]},{"id":"Plinth_retaining_wall","kind":"ring","layer":"Structure","t":600,"z":["L-1",-500],"conf":0.4,"outline":{"type":"poly","pts":[[-23000,1200,0],[-18000,-3000,0],[-18000,-11500,1500],[8250,-11500,0],[18800,-2650,0],[19500,-2650,0],[19500,22000,2000],[-23000,22000,2000]]}},{"id":"Bastion_planter","kind":"ring","layer":"Structure","t":600,"z":["L-1",600],"conf":0.5,"outline":{"type":"circle","c":[-12800,-8600],"r":5300}},{"id":"Slab_L01","kind":"slab","layer":"Structure","top":"L01","t":350,"conf":0.6,"note":"rounded edge: wraps the west drum, forward lobe under S1, straight run just behind the S3/S5 trunks, east wing stepped back at S6","outline":{"type":"blob","smooth":1500,"grid":100,"tol":10,"shapes":[{"type":"ref","at":"Glass_L00","grow":1400},{"type":"circle","at":"Core_West_stone_drum","grow":300},{"type":"capsule","a":{"at":"S1","offset":[-2500,3600]},"b":{"at":"S1","offset":[4300,3600]},"r":2800},{"type":"circle","at":"S1","offset":[2500,4800],"r":4500},{"type":"capsule","a":{"at":"S6","offset":[1500,4600]},"b":{"at":"S6","offset":[3300,6500]},"r":2000}]}},{"id":"Roof_L02_W","kind":"slab","layer":"Roof","top":"L02","t":300,"conf":0.4,"outline":{"type":"ref","at":"Glass_L01_W","grow":700}},{"id":"Roof_L02_E","kind":"slab","layer":"Roof","top":"L02","t":300,"conf":0.3,"outline":{"type":"ref","at":"Glass_L01_E","grow":700}},{"id":"Glass_L00","kind":"glass","layer":"Facade::Glass","z":["L00",3450],"conf":0.5,"outline":{"type":"rrect","x":[-17000,13500],"y":[2000,15000],"r":[3000,500,500,3000]}},{"id":"Glass_L01_W","kind":"glass","layer":"Facade::Glass","z":["L01",6500],"conf":0.45,"note":"west pod: rounded west end over the stone drum, rounded east end at the open deck","outline":{"type":"rrect","x":[-17600,-7100],"y":[1500,15000],"r":[4500,2500,500,3500]}},{"id":"Glass_L01_E","kind":"glass","layer":"Facade::Glass","z":["L01",6500],"conf":0.35,"note":"east pod around the east core","outline":{"type":"rrect","x":[9000,14200],"y":[3600,13500],"r":[2500,2500,500,500]}},{"id":"Railing_L01","kind":"glass","layer":"Facade::Glass","z":["L01",4900],"inset":150,"conf":0.6,"outline":{"type":"ref","at":"Slab_L01"}},{"id":"Core_West_stone_drum","kind":"solid","layer":"Circulation::Core","z":["L00",3450],"conf":0.5,"note":"ground-floor stone drum (stair) under the rounded west end of L01","outline":{"type":"circle","c":[-16000,2000],"r":3000}},{"id":"Core_East_service","kind":"solid","layer":"Circulation::Core","z":["L00","L02"],"conf":0.35,"outline":{"type":"rrect","x":[10500,13700],"y":[4000,8000],"r":[300,300,300,300]}},{"id":"Stair_West_landscape","kind":"stair","layer":"Circulation::Stairs","start":[-22500,-7500],"dir":50,"width":2400,"z":["L-1","L00"],"riser":170,"tread":300,"conf":0.4},{"id":"Pool_floor","kind":"slab","layer":"Structure","top":-1600,"t":300,"conf":0.5,"outline":{"type":"poly","pts":[[10200,-20350,0],[23950,-8800,0],[18800,-2650,0],[5050,-14200,0]]}},{"id":"Pool_walls","kind":"ring","layer":"Structure","t":300,"z":[-1600,0],"conf":0.5,"outline":{"type":"poly","pts":[[10200,-20350,0],[23950,-8800,0],[18800,-2650,0],[5050,-14200,0]]}},{"id":"Pool_glass_edge","kind":"panel","layer":"Facade::Glass","z":[-1900,100],"conf":0.5,"paths":[[[5050,-14200],[10200,-20350],[23950,-8800],[18800,-2650]]]},{"id":"Pool_support_base","kind":"solid","layer":"Structure","z":["L-1",-1900],"conf":0.4,"outline":{"type":"poly","pts":[[9650,-19750,3000],[19600,-11400,0],[15500,-6500,0],[5550,-14850,3000]]}},{"id":"Lounge_pit_floor","kind":"slab","layer":"Structure","top":-450,"t":200,"conf":0.5,"outline":{"type":"circle","c":[-2500,-5000],"r":3600}},{"id":"Lounge_seat_ring","kind":"ring","layer":"Interior elements","t":900,"z":[-450,0],"conf":0.5,"outline":{"type":"circle","c":[-2500,-5000],"r":3500}},{"id":"Lounge_fire_pit","kind":"solid","layer":"Interior elements","z":[-450,-100],"conf":0.5,"outline":{"type":"circle","c":[-2500,-5000],"r":700}},{"id":"Planter_round_E","kind":"ring","layer":"Interior elements","t":300,"z":["L00",600],"conf":0.5,"note":"planter ring around the S5 tree base","outline":{"type":"circle","at":"S5","r":2000}},{"id":"Lounger_1","kind":"box","layer":"Interior elements","c":[9300,-1700],"size":[2000,700,350],"rot":60,"z":"L00","conf":0.4},{"id":"Lounger_2","kind":"box","layer":"Interior elements","c":[10800,-2400],"size":[2000,700,350],"rot":60,"z":"L00","conf":0.4},{"id":"Massing_L00","kind":"mass","layer":"Massing","z":["L00","L01"],"conf":0.5,"outline":{"type":"ref","at":"Glass_L00"}},{"id":"Massing_L01_W","kind":"mass","layer":"Massing","z":["L01","L02"],"conf":0.45,"outline":{"type":"ref","at":"Glass_L01_W"}},{"id":"Massing_L01_E","kind":"mass","layer":"Massing","z":["L01","L02"],"conf":0.35,"outline":{"type":"ref","at":"Glass_L01_E"}}]}''')
 
 # ======== core/mvm_core.py ========
 import math
@@ -148,7 +148,8 @@ def _centre(o, ctx):
 
 def outline(o, ctx=None):
     """Outline dict -> closed CCW [[x, y], ..].
-    Types: rrect, circle (c or at), poly (vertices may carry a fillet radius), blob (smooth union of shapes)."""
+    Types: rrect, circle (c or at), poly (vertices may carry a fillet radius), blob (smooth union of
+    shapes; blob members may also be capsules), ref (another element's outline, optionally grown)."""
     t = o["type"]
     if t == "circle":
         return circle_pts(_centre(o, ctx), _radius(o, ctx), o.get("seg", 72))
@@ -162,10 +163,24 @@ def outline(o, ctx=None):
     if t == "poly":
         return ensure_ccw(fillet_poly(o["pts"]))
     if t == "blob":
-        return _blob(o, ctx)
+        if ctx is None:
+            return _blob(o, ctx)
+        cache = ctx.setdefault("_blob_cache", {})
+        key = repr(o)
+        if key not in cache:
+            cache[key] = _blob(o, ctx)
+        return [list(p) for p in cache[key]]
     if t == "ref":
-        return outline(_ref_outline(o["at"], ctx), ctx)
+        pts = outline(_ref_outline(o["at"], ctx), ctx)
+        return offset_closed(pts, -o["grow"]) if o.get("grow") else pts
     raise ValueError("unknown outline type: " + str(t))
+
+
+def is_smooth(o, ctx):
+    """True when an outline resolves to a blob, so adapters can fit a periodic curve."""
+    while o["type"] == "ref":
+        o = _ref_outline(o["at"], ctx)
+    return o["type"] == "blob"
 
 
 def _radius(o, ctx):
@@ -201,6 +216,16 @@ def _sdf(o, ctx):
         ref = dict(_ref_outline(o["at"], ctx))
         ref["grow"] = ref.get("grow", 0.0) + grow
         return _sdf(ref, ctx)
+    if t == "capsule":
+        a, b = _centre(o["a"], ctx), _centre(o["b"], ctx)
+        r = o["r"] + grow
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        L2 = dx * dx + dy * dy or 1e-9
+
+        def cap(x, y):
+            t = max(0.0, min(1.0, ((x - a[0]) * dx + (y - a[1]) * dy) / L2))
+            return math.hypot(x - a[0] - t * dx, y - a[1] - t * dy) - r
+        return cap
     pts = outline(o, ctx)
 
     def g(x, y):
@@ -227,6 +252,10 @@ def _bbox(o, ctx):
         b = _bbox(_ref_outline(o["at"], ctx), ctx)
         g = o.get("grow", 0.0)
         return [b[0] - g, b[1] - g, b[2] + g, b[3] + g]
+    if t == "capsule":
+        a, b = _centre(o["a"], ctx), _centre(o["b"], ctx)
+        r = o["r"] + o.get("grow", 0.0)
+        return [min(a[0], b[0]) - r, min(a[1], b[1]) - r, max(a[0], b[0]) + r, max(a[1], b[1]) + r]
     pts = outline(o, ctx)
     g = o.get("grow", 0.0)
     return [min(p[0] for p in pts) - g, min(p[1] for p in pts) - g, max(p[0] for p in pts) + g, max(p[1] for p in pts) + g]
@@ -664,7 +693,8 @@ def build(spec):
     tcfg = spec["trees"]
     keepout = []
     for k in tcfg.get("keepout", []):
-        keepout.append((offset_closed(outline(k["outline"], ctx), -tcfg.get("clearance", 400)), z_of(k["top"]) + tcfg.get("clearance", 400)))
+        off = k.get("inset", -tcfg.get("clearance", 400))
+        keepout.append((offset_closed(outline(k["outline"], ctx), off), z_of(k["top"]) + tcfg.get("clearance", 400)))
     def clashes(br):
         for p in br:
             for poly, ztop in keepout:
@@ -714,19 +744,19 @@ def build(spec):
                 z0, z1 = z_of(e["z"][0]), z_of(e["z"][1])
             holes = [lift(outline(h, ctx), z0) for h in e.get("holes", [])]
             add("extrude", layer, name, pts=lift(outline(e["outline"], ctx), z0), holes=holes,
-                vec=[0, 0, z1 - z0], cap=True, smooth=e["outline"]["type"] == "blob")
+                vec=[0, 0, z1 - z0], cap=True, smooth=is_smooth(e["outline"], ctx))
         elif k == "ring":
             z0, z1 = z_of(e["z"][0]), z_of(e["z"][1])
             out = outline(e["outline"], ctx)
             add("extrude", layer, name, pts=lift(out, z0), holes=[lift(offset_closed(out, e["t"]), z0)],
-                vec=[0, 0, z1 - z0], cap=True, smooth=e["outline"]["type"] == "blob")
+                vec=[0, 0, z1 - z0], cap=True, smooth=is_smooth(e["outline"], ctx))
         elif k == "glass":
             z0, z1 = z_of(e["z"][0]), z_of(e["z"][1])
             pts = outline(e["outline"], ctx)
             if e.get("inset"):
                 pts = offset_closed(pts, e["inset"])
             add("extrude", layer, name, pts=lift(pts, z0), holes=[], vec=[0, 0, z1 - z0], cap=False,
-                smooth=e["outline"]["type"] == "blob")
+                smooth=is_smooth(e["outline"], ctx))
         elif k == "panel":
             z0, z1 = z_of(e["z"][0]), z_of(e["z"][1])
             for n, path in enumerate(e["paths"]):
@@ -787,9 +817,10 @@ def clearance_report(spec, step=500.0):
     """Lowest canopy point above each tree keepout (the enclosure roof), sampled on a grid."""
     lv = dict((l["name"], l["elev"]) for l in spec["levels"])
     can = Canopy(spec["canopy"])
+    ctx = make_ctx(spec)
     out = []
     for k in spec["trees"].get("keepout", []):
-        poly = outline(k["outline"], make_ctx(spec))
+        poly = outline(k["outline"], ctx)
         top = lv[k["top"]] if isinstance(k["top"], str) else float(k["top"])
         xs = [p[0] for p in poly]
         ys = [p[1] for p in poly]
@@ -806,7 +837,7 @@ def clearance_report(spec, step=500.0):
                         uncovered += 1
                 y += step
             x += step
-        out.append("canopy clearance over roof min %d mm (%d grid pts open sky)" % (worst if worst is not None else -1, uncovered))
+        out.append("canopy over %s min %d mm (%d pts open sky)" % (k.get("id", "keepout"), worst if worst is not None else -1, uncovered))
     return "; ".join(out)
 
 

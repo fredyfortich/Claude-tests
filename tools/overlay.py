@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from PIL import Image  # noqa: E402
 
-from camera import IMAGE, OUT, Camera, load_spec, mvm_core, resolve_anchor  # noqa: E402
+from camera import OUT, Camera, load_spec, mvm_core, resolve_anchor, view_image  # noqa: E402
 
 COLORS = {
     "Roof": "#ffb000", "Structure": "#ff3b30", "Facade::Glass": "#00c8ff", "Facade::Opaque": "#c08040",
@@ -44,9 +44,14 @@ def dim(ax, cam, a, b, text, color="#ffe066"):
 
 def main():
     spec = load_spec()
-    cam = Camera.from_meta(spec["meta"]["camera"])
     prims = mvm_core.build(spec)
-    img = Image.open(IMAGE).convert("RGB")
+    for view in spec["meta"]["views"]:
+        draw_view(spec, prims, view)
+
+
+def draw_view(spec, prims, view):
+    cam = Camera.from_meta(view["camera"])
+    img = Image.open(view_image(view)).convert("RGB")
     w, h = img.size
     fig = plt.figure(figsize=(w / 100.0, h / 100.0), dpi=200)
     ax = fig.add_axes([0, 0, 1, 1])
@@ -120,14 +125,14 @@ def main():
             c[2] = lv[ztag] if isinstance(ztag, str) else ztag
             label(ax, cam, c, txt, "#7dffd4", 5.5)
 
-    for a in spec["meta"]["anchors"]:
+    for a in view["anchors"]:
         m = np.asarray(a["px"], float)
         q = cam.project([resolve_anchor(spec, a)])[0]
         ax.plot([m[0], q[0]], [m[1], q[1]], color="#ff00ff", lw=0.8)
         ax.plot(m[0], m[1], "+", color="#00ffff", ms=5, mew=1.0)
         ax.plot(q[0], q[1], "o", color="#ff00ff", ms=2.5)
 
-    c = spec["meta"]["camera"]
+    c = view["camera"]
     ax.text(8, h - 10, "STAGE 2 CHECKPOINT  |  camera f=%.0f px  pitch=%.1f°  yaw=%.1f°  anchor rms=%.1f px  |  "
             "+ measured  o projected  |  ≈ mm, conf per element" % (c["f_px"], c["pitch_deg"], c["yaw_deg"], c["rms_px"]),
             color="white", fontsize=6.5, va="bottom",
@@ -140,8 +145,9 @@ def main():
                 bbox=dict(boxstyle="round,pad=0.15", fc="black", ec="none", alpha=0.6))
         y += 15
     os.makedirs(OUT, exist_ok=True)
-    path = os.path.join(OUT, "stage2_overlay.png")
+    path = os.path.join(OUT, "stage2_overlay_%s.png" % view["id"])
     fig.savefig(path, dpi=200)
+    plt.close(fig)
     print("wrote", path)
 
 

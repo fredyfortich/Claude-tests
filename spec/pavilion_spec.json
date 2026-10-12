@@ -2,13 +2,13 @@
   "meta": {
     "project": "MVM Canopy Pavilion",
     "units": "mm",
-    "source": "spec/source_image.webp (1376x768 px, AI-generated photo of a physical model, single perspective view)",
+    "source": "two AI images, 1376x768 each: spec/source_image.webp (white physical model) and spec/reference_image_2.webp (photoreal, on the lake)",
     "view": "perspective",
     "origin": "S3 tree-column base at L00 (terrace / ground floor finish)",
     "origin_px": [700, 377],
     "axes": "X along the main facade (image left to right), Y away from the camera, Z up",
     "mm_per_px": 41,
-    "mm_per_px_note": "at the facade plane (y = 0), from the fitted camera (f ~ 2020 px, ~83 m away); varies ~10 % front to back",
+    "mm_per_px_note": "image 1 at the facade plane (y = 0), from its fitted camera (f ~ 2000 px, ~83 m away); varies ~10 % front to back",
     "snap": 100,
     "scale_ref": "ground storey L00 to L01 = 3800 mm (92 px at 41 mm/px; matches lounge sofas and the conversation-pit ring)",
     "scale_check": [
@@ -20,39 +20,17 @@
         "status": "CONFLICT 1.7x: railing reads 0.65 m at 41 mm/px; spec uses a code-compliant 1100 mm railing"
       }
     ],
-    "camera": {
-      "C": [-10215, -82792, 15134],
-      "yaw_deg": 6.922,
-      "pitch_deg": 10.097,
-      "roll_deg": 0.0,
-      "f_px": 2021.4,
-      "size": [1376, 768],
-      "rms_px": 12.3,
-      "note": "fitted by tools/fit_camera.py; near-orthographic lens -> depth (Y) weakly constrained"
-    },
-    "anchors": [
-      {"id": "S3 trunk base", "px": [700, 377], "ref": "tree:S3:base", "w": 1.0, "residual_px": 15.8},
-      {"id": "S3 apex", "px": [700, 121], "ref": "shell:S3:apex", "w": 1.0, "residual_px": 9.1},
-      {"id": "S1 apex", "px": [332, 125], "ref": "shell:S1:apex", "w": 1.0, "residual_px": 15.2},
-      {"id": "S6 apex", "px": [1020, 148], "ref": "shell:S6:apex", "w": 1.0, "residual_px": 4.9},
-      {"id": "S2 apex", "px": [540, 76], "ref": "shell:S2:apex", "w": 0.5, "residual_px": 7.9},
-      {"id": "S1 eave tip (left)", "px": [140, 230], "ref": "shell:S1:eave_left", "w": 1.0, "residual_px": 15.8},
-      {"id": "S6 eave tip (right)", "px": [1211, 229], "ref": "shell:S6:eave_right", "w": 1.0, "residual_px": 9.4},
-      {"id": "L01 slab edge at S3", "px": [700, 289], "xyz": [0, -2000, 3800], "w": 1.0, "residual_px": 18.4},
-      {"id": "pit centre", "px": [642, 410], "xyz": [-2500, -5000, -300], "w": 0.3, "residual_px": 12.1},
-      {"id": "pool front corner", "px": [1075, 490], "xyz": [10200, -20350, 0], "w": 0.3, "residual_px": 4.9},
-      {"id": "pool right corner", "px": [1322, 405], "xyz": [23950, -8800, 0], "w": 0.3, "residual_px": 13.4}
-    ],
     "flags": [
-      "PERSPECTIVE: single AI-rendered view; base-plate and pool edges diverge instead of converging, so no exact vanishing-point calibration. Camera fitted to 11 anchors (tools/fit_camera.py). Plan depths (Y) are assumptions, conf <= 0.5.",
-      "SCALE: railing vs storey/lounger references disagree by 1.7x; storey + lounger chosen (human to confirm).",
-      "DESIGN DELTA: canopy module raised +700 mm over the pure image fit (eave 7600, apex 11400) so eave lips clear the L02 roof by >= 800 mm; anchor rms 7.5 -> 12.3 px.",
-      "CANOPY PLAN: 6 domes read as a staggered cluster (front S1 S3 S5 S6, back S2 S4). S2 is the tallest 'hero' dome; S5 is a smaller, lower dome nestled in the S3/S6 valley; S4 trunk is hidden. Positions are editable points in Grasshopper.",
-      "TREES: crowns adapt to the enclosure (a clashing branch shortens its reach; S2/S4 inside the enclosure branch above the roof).",
+      "PERSPECTIVE: two AI-rendered views, no orthographic drawings. Each view has its own fitted camera (meta.views, tools/fit_camera.py). The two images are not mutually consistent to better than ~15 px; plan depths (Y) remain the weakest dimension.",
+      "SCALE: railing vs storey/lounger references disagree by 1.7x in image 1; storey + lounger chosen (human to confirm).",
+      "DESIGN DELTA: canopy module raised +700 mm over the pure image fit (eave 7600, apex 11400) so eave lips clear the pod roofs by >= 800 mm. A reader measured the dome rise at ~3.1-3.3 m in the images vs 3.8 m modelled: lower apexes slightly if the building should read taller.",
+      "CANOPY: six distinct domes, verified with dome_report (every prominence >= 1.0 m). Front S1 S3 S6, small low S5 nestled between S3 and S6 (its tree rises out of the round planter), back S2 (tallest) and S4 (hidden from image 2, as in the photo). Positions are editable points in Grasshopper.",
+      "L01: rounded slab edge (blob) referenced to the drum, S1 and S6 - it follows when those move. Trunks stand free just outside the edge, as in both images. Upper floor = rounded west pod + east pod with an open, canopy-covered deck between (both images).",
+      "TREES: crowns adapt to the pods and to 2.4 m headroom over the open L01 deck (a clashing branch shortens its reach; S2/S4 branch above the pod roofs/deck headroom).",
       "SITE ORIENTATION: base plate and pool read rotated about 40 deg to the facade (building faces the promontory corner). Pool modelled rotated 40 deg; plate kept as context only.",
-      "UNSEEN: rear facade, building depth (assumed 13 m), interior layout, roof slab under the canopy (assumed L02 = 6800, upper floor 3.0 m floor-to-floor).",
+      "UNSEEN: rear facade, building depth (assumed 13 m), interior layout, pod roofs at L02 = 6800 (upper floor 3.0 m floor-to-floor).",
       "NO GEOMETRY (not in layer standard): vegetation and trees, rocks and boulders, water bodies (lagoon and pool water), acrylic base plate, loose furniture other than loungers and the lounge ring, lighting.",
-      "NOT MODELLED v1: mullions, discrete canopy infill panels (skin mesh stands in for ETFE/glass), planter openings in the deck, stair balustrades. Facade::Opaque is empty in v1."
+      "NOT MODELLED v1: mullions, discrete canopy infill panels (skin mesh stands in for ETFE/glass), bundled multi-stem trunks, terrace steps/veranda, planter openings in the deck, stair balustrades. Facade::Opaque is empty in v1."
     ],
     "context": {
       "site_plate": {
@@ -61,7 +39,67 @@
         "conf": 0.3,
         "note": "acrylic plate / lagoon, no geometry"
       }
-    }
+    },
+    "views": [
+      {
+        "id": "img1",
+        "image": "spec/source_image.webp",
+        "note": "AI photo of the white physical model",
+        "camera": {
+          "C": [-9365, -82209, 15137],
+          "yaw_deg": 6.322,
+          "pitch_deg": 10.163,
+          "roll_deg": 0.0,
+          "f_px": 2009.2,
+          "size": [1376, 768],
+          "rms_px": 11.2,
+          "note": "fitted by tools/fit_camera.py; single view, plan depth (Y) weakly constrained"
+        },
+        "anchors": [
+          {"id": "S3 trunk base", "px": [700, 377], "ref": "tree:S3:base", "w": 1.0, "residual_px": 15.3},
+          {"id": "S3 apex", "px": [700, 121], "ref": "shell:S3:apex", "w": 1.0, "residual_px": 7.2},
+          {"id": "S1 apex", "px": [360, 121], "ref": "shell:S1:apex", "w": 0.5, "residual_px": 2.5},
+          {"id": "S6 apex", "px": [1008, 146], "ref": "shell:S6:apex", "w": 1.0, "residual_px": 3.2},
+          {"id": "S2 apex", "px": [540, 71], "ref": "shell:S2:apex", "w": 0.5, "residual_px": 4.0},
+          {"id": "S1 eave tip (left)", "px": [140, 230], "ref": "shell:S1:eave_left", "w": 1.0, "residual_px": 16.6},
+          {"id": "S6 eave tip (right)", "px": [1211, 229], "ref": "shell:S6:eave_right", "w": 1.0, "residual_px": 16.2},
+          {"id": "L01 slab edge at S3", "px": [700, 289], "xyz": [0, 600, 3800], "w": 1.0, "residual_px": 12.7},
+          {"id": "pool front corner", "px": [1075, 490], "xyz": [10200, -20350, 0], "w": 0.3, "residual_px": 7.1},
+          {"id": "pool right corner", "px": [1322, 405], "xyz": [23950, -8800, 0], "w": 0.3, "residual_px": 17.5},
+          {"id": "S4 apex", "px": [881, 114.5], "ref": "shell:S4:apex", "w": 0.5, "residual_px": 5.5},
+          {"id": "S5 apex", "px": [844, 158.5], "ref": "shell:S5:apex", "w": 0.5, "residual_px": 10.5}
+        ]
+      },
+      {
+        "id": "img2",
+        "image": "spec/reference_image_2.webp",
+        "note": "photoreal render on the lake, low camera (eye ~2.7 m)",
+        "camera": {
+          "C": [-10432, -57954, 4367],
+          "yaw_deg": 11.258,
+          "pitch_deg": 1.382,
+          "roll_deg": 1.843,
+          "f_px": 1445.9,
+          "size": [1376, 768],
+          "rms_px": 14.1,
+          "note": "fitted by tools/fit_camera.py; single view, plan depth (Y) weakly constrained"
+        },
+        "anchors": [
+          {"id": "S3 trunk base", "px": [657, 440], "ref": "tree:S3:base", "w": 1.0, "residual_px": 15.5},
+          {"id": "L01 slab edge at S3", "px": [657, 352], "xyz": [0, 600, 3800], "w": 1.0, "residual_px": 10.3},
+          {"id": "S3 apex", "px": [657.5, 172.5], "ref": "shell:S3:apex", "w": 1.0, "residual_px": 10.8},
+          {"id": "S6 apex", "px": [977, 239.7], "ref": "shell:S6:apex", "w": 1.0, "residual_px": 16.7},
+          {"id": "S6 eave tip (right)", "px": [1167, 305], "ref": "shell:S6:eave_right", "w": 1.0, "residual_px": 12.0},
+          {"id": "S1 eave tip (left)", "px": [87, 248], "ref": "shell:S1:eave_left", "w": 1.0, "residual_px": 9.7},
+          {"id": "S1 apex", "px": [344, 161], "ref": "shell:S1:apex", "w": 0.5, "residual_px": 24.1},
+          {"id": "S2 apex", "px": [504, 151], "ref": "shell:S2:apex", "w": 0.5, "residual_px": 11.4},
+          {"id": "S5 apex", "px": [822, 215.4], "ref": "shell:S5:apex", "w": 0.5, "residual_px": 11.3},
+          {"id": "pool front corner", "px": [1150, 512], "xyz": [10200, -20350, 0], "w": 0.3, "residual_px": 12.7},
+          {"id": "pool right corner", "px": [1315, 471], "xyz": [23950, -8800, 0], "w": 0.3, "residual_px": 14.0}
+        ],
+        "fit_roll": true
+      }
+    ]
   },
   "levels": [
     {"name": "L-1", "elev": -3600, "note": "lower landscape shelf / rock edge"},
@@ -97,12 +135,12 @@
       "skin": true
     },
     "shells": [
-      {"id": "S1", "c": [-14000, 0], "conf": 0.6},
-      {"id": "S3", "c": [0, 0], "conf": 0.7},
-      {"id": "S5", "c": [7500, -500], "R": 7000, "apex": 9700, "conf": 0.4},
-      {"id": "S6", "c": [13000, -3000], "apex": 10400, "conf": 0.6, "eave": 7200},
-      {"id": "S2", "c": [-6000, 11000], "conf": 0.5, "apex": 12900},
-      {"id": "S4", "c": [7500, 5500], "apex": 10900, "conf": 0.3}
+      {"id": "S1", "c": [-13500, -2000], "conf": 0.6},
+      {"id": "S3", "c": [0, 0], "R": 7000, "conf": 0.7},
+      {"id": "S5", "c": [6000, -3000], "R": 5500, "apex": 10100, "k": 3.0, "conf": 0.6},
+      {"id": "S6", "c": [13300, 0], "R": 8500, "apex": 10100, "eave": 7200, "conf": 0.6},
+      {"id": "S2", "c": [-6000, 11000], "apex": 12900, "conf": 0.6},
+      {"id": "S4", "c": [10100, 10000], "apex": 11000, "conf": 0.5}
     ]
   },
   "trees": {
@@ -117,7 +155,11 @@
     "trunk_d": [600, 450],
     "branch_d": [300, 160],
     "clearance": 400,
-    "keepout": [{"outline": {"type": "rrect", "x": [-18000, 14000], "y": [1500, 15000], "r": [3500, 500, 500, 3500]}, "top": "L02"}],
+    "keepout": [
+      {"id": "west pod roof", "outline": {"type": "ref", "at": "Glass_L01_W"}, "top": "L02"},
+      {"id": "east pod roof", "outline": {"type": "ref", "at": "Glass_L01_E"}, "top": "L02"},
+      {"id": "L01 deck headroom", "outline": {"type": "ref", "at": "Slab_L01"}, "top": 6200, "inset": 600}
+    ],
     "conf": 0.5
   },
   "elements": [
@@ -180,16 +222,38 @@
       "top": "L01",
       "t": 350,
       "conf": 0.6,
-      "outline": {"type": "rrect", "x": [-21000, 16500], "y": [-2000, 16500], "r": [6000, 1500, 1500, 6000]}
+      "note": "rounded edge: wraps the west drum, forward lobe under S1, straight run just behind the S3/S5 trunks, east wing stepped back at S6",
+      "outline": {
+        "type": "blob",
+        "smooth": 1500,
+        "grid": 100,
+        "tol": 10,
+        "shapes": [
+          {"type": "ref", "at": "Glass_L00", "grow": 1400},
+          {"type": "circle", "at": "Core_West_stone_drum", "grow": 300},
+          {"type": "capsule", "a": {"at": "S1", "offset": [-2500, 3600]}, "b": {"at": "S1", "offset": [4300, 3600]}, "r": 2800},
+          {"type": "circle", "at": "S1", "offset": [2500, 4800], "r": 4500},
+          {"type": "capsule", "a": {"at": "S6", "offset": [1500, 4600]}, "b": {"at": "S6", "offset": [3300, 6500]}, "r": 2000}
+        ]
+      }
     },
     {
-      "id": "Slab_L02_roof",
+      "id": "Roof_L02_W",
+      "kind": "slab",
+      "layer": "Roof",
+      "top": "L02",
+      "t": 300,
+      "conf": 0.4,
+      "outline": {"type": "ref", "at": "Glass_L01_W", "grow": 700}
+    },
+    {
+      "id": "Roof_L02_E",
       "kind": "slab",
       "layer": "Roof",
       "top": "L02",
       "t": 300,
       "conf": 0.3,
-      "outline": {"type": "rrect", "x": [-18600, 14600], "y": [900, 15600], "r": [4100, 1100, 1100, 4100]}
+      "outline": {"type": "ref", "at": "Glass_L01_E", "grow": 700}
     },
     {
       "id": "Glass_L00",
@@ -200,12 +264,22 @@
       "outline": {"type": "rrect", "x": [-17000, 13500], "y": [2000, 15000], "r": [3000, 500, 500, 3000]}
     },
     {
-      "id": "Glass_L01",
+      "id": "Glass_L01_W",
       "kind": "glass",
       "layer": "Facade::Glass",
       "z": ["L01", 6500],
-      "conf": 0.5,
-      "outline": {"type": "rrect", "x": [-18000, 14000], "y": [1500, 15000], "r": [3500, 500, 500, 3500]}
+      "conf": 0.45,
+      "note": "west pod: rounded west end over the stone drum, rounded east end at the open deck",
+      "outline": {"type": "rrect", "x": [-17600, -7100], "y": [1500, 15000], "r": [4500, 2500, 500, 3500]}
+    },
+    {
+      "id": "Glass_L01_E",
+      "kind": "glass",
+      "layer": "Facade::Glass",
+      "z": ["L01", 6500],
+      "conf": 0.35,
+      "note": "east pod around the east core",
+      "outline": {"type": "rrect", "x": [9000, 14200], "y": [3600, 13500], "r": [2500, 2500, 500, 500]}
     },
     {
       "id": "Railing_L01",
@@ -213,24 +287,25 @@
       "layer": "Facade::Glass",
       "z": ["L01", 4900],
       "inset": 150,
-      "conf": 0.5,
-      "outline": {"type": "rrect", "x": [-21000, 16500], "y": [-2000, 16500], "r": [6000, 1500, 1500, 6000]}
+      "conf": 0.6,
+      "outline": {"type": "ref", "at": "Slab_L01"}
     },
     {
       "id": "Core_West_stone_drum",
       "kind": "solid",
       "layer": "Circulation::Core",
-      "z": ["L00", "L02"],
+      "z": ["L00", 3450],
       "conf": 0.5,
-      "outline": {"type": "circle", "c": [-18000, 3000], "r": 2800}
+      "note": "ground-floor stone drum (stair) under the rounded west end of L01",
+      "outline": {"type": "circle", "c": [-16000, 2000], "r": 3000}
     },
     {
       "id": "Core_East_service",
       "kind": "solid",
       "layer": "Circulation::Core",
       "z": ["L00", "L02"],
-      "conf": 0.3,
-      "outline": {"type": "rrect", "x": [11500, 15500], "y": [6000, 11000], "r": [300, 300, 300, 300]}
+      "conf": 0.35,
+      "outline": {"type": "rrect", "x": [10500, 13700], "y": [4000, 8000], "r": [300, 300, 300, 300]}
     },
     {
       "id": "Stair_West_landscape",
@@ -311,26 +386,22 @@
       "t": 300,
       "z": ["L00", 600],
       "conf": 0.5,
-      "outline": {"type": "circle", "c": [5500, -4500], "r": 2000}
+      "note": "planter ring around the S5 tree base",
+      "outline": {"type": "circle", "at": "S5", "r": 2000}
     },
-    {"id": "Lounger_1", "kind": "box", "layer": "Interior elements", "c": [10500, -500], "size": [2000, 700, 350], "rot": 60, "z": "L00", "conf": 0.4},
+    {"id": "Lounger_1", "kind": "box", "layer": "Interior elements", "c": [9300, -1700], "size": [2000, 700, 350], "rot": 60, "z": "L00", "conf": 0.4},
     {
       "id": "Lounger_2",
       "kind": "box",
       "layer": "Interior elements",
-      "c": [12200, -1200],
+      "c": [10800, -2400],
       "size": [2000, 700, 350],
       "rot": 60,
       "z": "L00",
       "conf": 0.4
     },
-    {
-      "id": "Massing_enclosure",
-      "kind": "mass",
-      "layer": "Massing",
-      "z": ["L00", "L02"],
-      "conf": 0.5,
-      "outline": {"type": "rrect", "x": [-17000, 13500], "y": [2000, 15000], "r": [3000, 500, 500, 3000]}
-    }
+    {"id": "Massing_L00", "kind": "mass", "layer": "Massing", "z": ["L00", "L01"], "conf": 0.5, "outline": {"type": "ref", "at": "Glass_L00"}},
+    {"id": "Massing_L01_W", "kind": "mass", "layer": "Massing", "z": ["L01", "L02"], "conf": 0.45, "outline": {"type": "ref", "at": "Glass_L01_W"}},
+    {"id": "Massing_L01_E", "kind": "mass", "layer": "Massing", "z": ["L01", "L02"], "conf": 0.35, "outline": {"type": "ref", "at": "Glass_L01_E"}}
   ]
 }

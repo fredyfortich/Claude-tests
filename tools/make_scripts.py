@@ -24,7 +24,7 @@ def strip_header(src):
 
 def assemble(title, main_parts):
     spec = json.loads(read("spec", "pavilion_spec.json"))
-    spec["meta"].pop("anchors", None)  # extraction data, not needed to build
+    spec["meta"].pop("views", None)  # cameras and anchors: extraction data, not needed to build
     spec_src = json.dumps(spec, separators=(",", ":"))
     return "\n".join([
         "#! python3",
