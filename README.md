@@ -60,7 +60,7 @@ python render.py            # Stage 4: out/stage4_compare_<view>.png, out/render
 
 **Rhino 8:** run `rhino/mvm_build_rhino.py` in the ScriptEditor, or send it as one MCP call. It is idempotent: it first purges earlier `MVM_` objects, including hidden ones, locked ones and ones on switched-off layers. It ends with one `REPORT:` line: counts per layer, a solid check, and canopy clearance over each pod roof and over the deck headroom. For MCP servers that only return success or failure, set `REPORT_AS_ERROR = True`.
 
-**Grasshopper:** create a Script component (Python 3) and paste in `grasshopper/mvm_pavilion_gh.py`. Add these optional inputs: `spec_path, centers (list), R, eave, apex, profile_k, tilt_slope, tilt_top, tilt_floor, tilt_centre (point), rings, member_len, branches, branch_z, reach, L01, L02, skin`. Add these outputs: `roof, lattice, structure, glass, opaque, cores, stairs, interior, massing, report`. Numbers are in mm, and points are in model units. Units scale automatically.
+**Grasshopper:** create a Script component (Python 3) and paste in `grasshopper/mvm_pavilion_gh.py`. Add these optional inputs: `spec_path, centers (list), R, eave, apex, profile_k, tilt_slope, tilt_top, tilt_floor, tilt_centre (point), rings, member_len, branches, branch_z, reach, L01, L02, skin`. Add these outputs: `roof, lattice, structure, glass, opaque, cores, stairs, interior, massing, report`. Numbers are in mm, and points are in model units. Units scale automatically. In field-tilt mode the `eave` input shifts the whole rim field: the plateau and floor move together.
 
 ## Source map
 

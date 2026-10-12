@@ -3,7 +3,8 @@
 # Inputs (all optional, Item access unless noted; numbers in mm, points in model units):
 #   spec_path  str      path to pavilion_spec.json (blank = spec embedded below)
 #   centers    Point3d  List access. Canopy shell centres; replaces S1.. in order, extra points add shells
-#   R, eave, apex, profile_k            canopy module (mm / exponent)
+#   R, eave, apex, profile_k            canopy module (mm / exponent); in field-tilt mode "eave" shifts the
+#                                       whole rim field (top and floor) so the mean rim follows it
 #   tilt_slope, tilt_top, tilt_floor    inclined rims (shared rim field): fall per mm outward, plateau height, lowest rim (mm)
 #   tilt_centre  Point3d                 heart of the rim field (model units); tilt_slope 0 = level rims
 #   rings, member_len                    gridshell density
@@ -25,9 +26,16 @@ def _given(name):
 def _spec():
     spec = json.load(open(spec_path)) if _given("spec_path") else copy.deepcopy(SPEC)
     mod = spec["canopy"]["module"]
+    old_eave = mod["eave"]
     for key in ("R", "eave", "apex", "profile_k", "rings", "member_len"):
         if _given(key):
             mod[key] = globals()[key]
+    tilt0 = mod.get("tilt", {})
+    if _given("eave") and tilt0.get("mode") == "field":
+        shift = float(eave) - float(old_eave)
+        tilt0["top"] = float(tilt0.get("top", old_eave)) + shift
+        if "floor" in tilt0:
+            tilt0["floor"] = float(tilt0["floor"]) + shift
     for key in ("branches", "branch_z", "reach"):
         if _given(key):
             spec["trees"][key] = globals()[key]
@@ -40,7 +48,10 @@ def _spec():
     if any(_given(n) for n in keys):
         t = dict(mod.get("tilt", {}))
         if t.get("mode") != "field":
-            t = {"mode": "field", "centre": [0.0, 0.0], "plateau": 0.0, "top": mod["eave"], "slope": 0.0}
+            # converting from level/planar rims: keep their centre, and floor the field at the lowest eave
+            eaves = [mod["eave"]] + [sh["eave"] for sh in spec["canopy"]["shells"] if "eave" in sh]
+            t = {"mode": "field", "centre": list(t.get("centre", [0.0, 0.0])), "plateau": 0.0,
+                 "top": mod["eave"], "slope": 0.0, "floor": min(eaves)}
         if _given("tilt_slope"):
             t["slope"] = float(tilt_slope)
         if _given("tilt_top"):

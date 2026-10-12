@@ -191,6 +191,31 @@ def main():
             continue
         raise AssertionError("invalid tilt accepted: %r" % (bad,))
     print("tilt validation OK")
+    # every valley gets exactly one gutter, and no eave beam runs along a valley
+    can = mvm_core.Canopy(spec["canopy"])
+    ids = [sh["id"] for sh in can.shells]
+    pairs = set()
+    for i in range(len(ids)):
+        for nb, pts in can.boundary_runs(i):
+            if nb >= 0 and len(pts) > 2 and can.flush(i, pts[:-1]):
+                pairs.add(tuple(sorted((ids[i], ids[nb]))))
+    prims = mvm_core.build(spec)
+    gutters = [tuple(sorted(p["name"].split("gutter_")[1].split("_"))) for p in prims if "gutter_" in p["name"]]
+    assert sorted(set(gutters)) == sorted(pairs) and len(gutters) == len(set(gutters)), (gutters, pairs)
+    beams = [p for p in prims if p["name"].endswith("_eave_beam")]
+    print("gutters OK: %d valleys, %d gutters, %d eave beams" % (len(pairs), len(gutters), len(beams)))
+    # Grasshopper eave input moves the field; converting a non-field spec keeps its centre and floor
+    doc, g, _ = run("grasshopper/mvm_pavilion_gh.py", {"eave": 8400})
+    t = g["_spec_now"]["canopy"]["module"]["tilt"]
+    assert abs(t["top"] - (spec["canopy"]["module"]["tilt"]["top"] + 500)) < 1e-6, t
+    print("eave input OK: field top %.0f" % t["top"])
+    bad = json.loads(json.dumps(spec))
+    bad["canopy"]["module"]["tilt"]["floor"] = bad["canopy"]["module"]["tilt"]["top"] + 1
+    try:
+        mvm_core.shell_params(bad["canopy"])
+        raise AssertionError("floor above top accepted")
+    except ValueError:
+        print("field validation OK")
 
 
 if __name__ == "__main__":

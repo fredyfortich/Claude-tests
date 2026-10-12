@@ -514,6 +514,16 @@ def shell_params(cfg):
     mode0 = tilt.get("mode", "none")
     if mode0 not in TILT_MODES:
         raise ValueError("canopy.module.tilt.mode must be one of %s, got %r" % (TILT_MODES, mode0))
+    field = None
+    if mode0 == "field":
+        for key in ("centre", "slope"):
+            if key not in tilt:
+                raise ValueError("field tilt needs %r" % key)
+        field = {"c": tilt["centre"], "plateau": float(tilt.get("plateau", 0.0)),
+                 "top": float(tilt.get("top", mod["eave"])), "slope": float(tilt["slope"]),
+                 "floor": float(tilt.get("floor", -1e9))}
+        if field["plateau"] < 0 or field["slope"] < 0 or field["floor"] > field["top"]:
+            raise ValueError("field tilt needs plateau >= 0, slope >= 0 and floor <= top, got %r" % (tilt,))
     out = []
     for s in cfg["shells"]:
         R = s.get("R", mod["R"])
@@ -522,9 +532,7 @@ def shell_params(cfg):
               "k": s.get("k", mod.get("profile_k", 1.0)), "u": [0.0, 0.0], "rise": 0.0, "field": None}
         if mode0 == "field":
             sh["eave"] = mod["eave"]
-            sh["field"] = {"c": tilt["centre"], "plateau": float(tilt.get("plateau", 0.0)),
-                           "top": float(tilt.get("top", mod["eave"])), "slope": float(tilt["slope"]),
-                           "floor": float(tilt.get("floor", -1e9))}
+            sh["field"] = field
             out.append(sh)
             continue
         st = s.get("tilt", {})
@@ -797,12 +805,13 @@ def build(spec):
         for nb, pts in can.boundary_runs(i):
             if len(pts) < 2:
                 continue
-            flush = nb >= 0 and can.flush(i, pts)
-            if not flush:
+            # a run ends on the first sample of the next run, so test flushness on its own samples only
+            if nb >= 0 and can.flush(i, pts[:-1]):
+                if nb > i:  # each valley is emitted once, from its lower-index shell
+                    v, f = _ribbon(pts, mod.get("gutter_w", 900), mod.get("gutter_depth", -150))
+                    add("mesh", "Roof", "gutter_" + sid + "_" + can.shells[nb]["id"], v=v, f=f)
+            else:  # free edge: an eave, or an edge left open above or below a neighbour
                 add("pipe", "Roof", sid + "_eave_beam", pts=pts, r=[mod.get("edge_d", 260) / 2.0] * 2)
-            elif nb > i:
-                v, f = _ribbon(pts, mod.get("gutter_w", 900), mod.get("gutter_depth", -150))
-                add("mesh", "Roof", "gutter_" + sid + "_" + can.shells[nb]["id"], v=v, f=f)
 
     # ---- tree columns (Structure) ----
     tcfg = spec["trees"]
@@ -1068,7 +1077,8 @@ def color(rgb):
 # Inputs (all optional, Item access unless noted; numbers in mm, points in model units):
 #   spec_path  str      path to pavilion_spec.json (blank = spec embedded below)
 #   centers    Point3d  List access. Canopy shell centres; replaces S1.. in order, extra points add shells
-#   R, eave, apex, profile_k            canopy module (mm / exponent)
+#   R, eave, apex, profile_k            canopy module (mm / exponent); in field-tilt mode "eave" shifts the
+#                                       whole rim field (top and floor) so the mean rim follows it
 #   tilt_slope, tilt_top, tilt_floor    inclined rims (shared rim field): fall per mm outward, plateau height, lowest rim (mm)
 #   tilt_centre  Point3d                 heart of the rim field (model units); tilt_slope 0 = level rims
 #   rings, member_len                    gridshell density
@@ -1090,9 +1100,16 @@ def _given(name):
 def _spec():
     spec = json.load(open(spec_path)) if _given("spec_path") else copy.deepcopy(SPEC)
     mod = spec["canopy"]["module"]
+    old_eave = mod["eave"]
     for key in ("R", "eave", "apex", "profile_k", "rings", "member_len"):
         if _given(key):
             mod[key] = globals()[key]
+    tilt0 = mod.get("tilt", {})
+    if _given("eave") and tilt0.get("mode") == "field":
+        shift = float(eave) - float(old_eave)
+        tilt0["top"] = float(tilt0.get("top", old_eave)) + shift
+        if "floor" in tilt0:
+            tilt0["floor"] = float(tilt0["floor"]) + shift
     for key in ("branches", "branch_z", "reach"):
         if _given(key):
             spec["trees"][key] = globals()[key]
@@ -1105,7 +1122,10 @@ def _spec():
     if any(_given(n) for n in keys):
         t = dict(mod.get("tilt", {}))
         if t.get("mode") != "field":
-            t = {"mode": "field", "centre": [0.0, 0.0], "plateau": 0.0, "top": mod["eave"], "slope": 0.0}
+            # converting from level/planar rims: keep their centre, and floor the field at the lowest eave
+            eaves = [mod["eave"]] + [sh["eave"] for sh in spec["canopy"]["shells"] if "eave" in sh]
+            t = {"mode": "field", "centre": list(t.get("centre", [0.0, 0.0])), "plateau": 0.0,
+                 "top": mod["eave"], "slope": 0.0, "floor": min(eaves)}
         if _given("tilt_slope"):
             t["slope"] = float(tilt_slope)
         if _given("tilt_top"):
